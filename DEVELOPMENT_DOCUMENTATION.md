@@ -347,12 +347,13 @@ List<LoanApplicationHistory> findByLoanApplicationIdWithApprover(
 
 ## 5. Phase 4: DTOs
 
-### Request DTOs (7 classes)
+### Request DTOs (8 classes)
 
 | DTO                     | Purpose               | Validations                  |
 | ----------------------- | --------------------- | ---------------------------- |
 | RegisterRequest         | Customer registration | @NotBlank, @Email, @Size     |
 | LoginRequest            | User login            | @NotBlank, @Email            |
+| ChangePasswordRequest   | Change password       | @NotBlank, @Size(min=6)      |
 | UpdateProfileRequest    | Profile update        | @NotNull, @Pattern (NIK)     |
 | LoanApplicationRequest  | Submit loan           | @NotNull productId, branchId |
 | ApprovalRequest         | Approve/reject        | @Size(max=1000) note         |
@@ -517,6 +518,14 @@ public class AuthServiceImpl implements AuthService {
         // 3. Generate JWT token
         // 4. Return AuthResponse
     }
+
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        // 1. Validate new password matches confirm password
+        // 2. Validate new password is different from current
+        // 3. Get user by ID
+        // 4. Verify current password is correct
+        // 5. Encode and save new password
+    }
 }
 ```
 
@@ -585,6 +594,9 @@ POST   /api/auth/register     - Customer registration
 POST   /api/auth/login        - User login
 GET    /api/products          - List products
 GET    /api/branches          - List branches
+
+AUTHENTICATED ENDPOINTS (Any logged-in user):
+POST   /api/auth/change-password - Change password (requires current password)
 
 CUSTOMER ENDPOINTS (ROLE_CUSTOMER):
 GET    /api/customer/profile  - Get profile
