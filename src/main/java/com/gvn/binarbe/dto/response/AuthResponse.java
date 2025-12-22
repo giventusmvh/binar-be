@@ -1,0 +1,25 @@
+package com.gvn.binarbe.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+/**
+ * Response DTO for successful authentication.
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AuthResponse {
+
+    private String token;
+    private String tokenType;
+    private Long userId;
+    private String email;
+    private String name;
+    private List<String> roles;
+}
