@@ -1,5 +1,6 @@
 package com.gvn.binarbe.service.impl;
 
+import com.gvn.binarbe.dto.request.ChangePasswordRequest;
 import com.gvn.binarbe.dto.request.LoginRequest;
 import com.gvn.binarbe.dto.request.RegisterRequest;
 import com.gvn.binarbe.dto.response.AuthResponse;
@@ -36,93 +37,124 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepository userRepository;
-    private final UserProfileRepository userProfileRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
+        private final UserRepository userRepository;
+        private final UserProfileRepository userProfileRepository;
+        private final RoleRepository roleRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final JwtUtil jwtUtil;
+        private final AuthenticationManager authenticationManager;
+        private final UserDetailsService userDetailsService;
 
-    @Override
-    @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        log.info("Registering new customer: {}", request.getEmail());
+        @Override
+        @Transactional
+        public AuthResponse register(RegisterRequest request) {
+                log.info("Registering new customer: {}", request.getEmail());
 
-        // Check if email already exists
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw BusinessException.conflict("Email already registered");
+                // Check if email already exists
+                if (userRepository.existsByEmail(request.getEmail())) {
+                        throw BusinessException.conflict("Email already registered");
+                }
+
+                // Get CUSTOMER role
+                Role customerRole = roleRepository.findByName(RoleName.CUSTOMER)
+                                .orElseThrow(() -> BusinessException.notFound("Customer role not found"));
+
+                // Create new user
+                Set<Role> roles = new HashSet<>();
+                roles.add(customerRole);
+
+                User user = User.builder()
+                                .name(request.getName())
+                                .email(request.getEmail())
+                                .password(passwordEncoder.encode(request.getPassword()))
+                                .userType(UserType.CUSTOMER)
+                                .isActive(true)
+                                .roles(roles)
+                                .build();
+
+                user = userRepository.save(user);
+
+                // Create empty profile
+                UserProfile profile = UserProfile.builder()
+                                .user(user)
+                                .build();
+                userProfileRepository.save(profile);
+
+                // Generate token
+                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+                String token = jwtUtil.generateToken(userDetails);
+
+                log.info("Customer registered successfully: {}", user.getEmail());
+
+                return buildAuthResponse(user, token);
         }
 
-        // Get CUSTOMER role
-        Role customerRole = roleRepository.findByName(RoleName.CUSTOMER)
-                .orElseThrow(() -> BusinessException.notFound("Customer role not found"));
+        @Override
+        public AuthResponse login(LoginRequest request) {
+                log.info("Authenticating user: {}", request.getEmail());
 
-        // Create new user
-        Set<Role> roles = new HashSet<>();
-        roles.add(customerRole);
+                // Authenticate
+                authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .userType(UserType.CUSTOMER)
-                .isActive(true)
-                .roles(roles)
-                .build();
+                // Get user
+                User user = userRepository.findByEmailWithRoles(request.getEmail())
+                                .orElseThrow(() -> BusinessException.unauthorized("Invalid credentials"));
 
-        user = userRepository.save(user);
+                if (!user.getIsActive()) {
+                        throw BusinessException.unauthorized("Account is disabled");
+                }
 
-        // Create empty profile
-        UserProfile profile = UserProfile.builder()
-                .user(user)
-                .build();
-        userProfileRepository.save(profile);
+                // Generate token
+                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+                String token = jwtUtil.generateToken(userDetails);
 
-        // Generate token
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtUtil.generateToken(userDetails);
+                log.info("User authenticated successfully: {}", user.getEmail());
 
-        log.info("Customer registered successfully: {}", user.getEmail());
-
-        return buildAuthResponse(user, token);
-    }
-
-    @Override
-    public AuthResponse login(LoginRequest request) {
-        log.info("Authenticating user: {}", request.getEmail());
-
-        // Authenticate
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-
-        // Get user
-        User user = userRepository.findByEmailWithRoles(request.getEmail())
-                .orElseThrow(() -> BusinessException.unauthorized("Invalid credentials"));
-
-        if (!user.getIsActive()) {
-            throw BusinessException.unauthorized("Account is disabled");
+                return buildAuthResponse(user, token);
         }
 
-        // Generate token
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtUtil.generateToken(userDetails);
+        @Override
+        @Transactional
+        public void changePassword(Long userId, ChangePasswordRequest request) {
+                log.info("Changing password for user ID: {}", userId);
 
-        log.info("User authenticated successfully: {}", user.getEmail());
+                // Validate new password and confirm password match
+                if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                        throw BusinessException.badRequest("New password and confirm password do not match");
+                }
 
-        return buildAuthResponse(user, token);
-    }
+                // Validate new password is different from current
+                if (request.getCurrentPassword().equals(request.getNewPassword())) {
+                        throw BusinessException.badRequest("New password must be different from current password");
+                }
 
-    private AuthResponse buildAuthResponse(User user, String token) {
-        return AuthResponse.builder()
-                .token(token)
-                .tokenType("Bearer")
-                .userId(user.getId())
-                .email(user.getEmail())
-                .name(user.getName())
-                .roles(user.getRoles().stream()
-                        .map(role -> role.getName().name())
-                        .collect(Collectors.toList()))
-                .build();
-    }
+                // Get user
+                User user = userRepository.findById(userId)
+                                .orElseThrow(() -> BusinessException.notFound("User not found"));
+
+                // Verify current password
+                if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                        throw BusinessException.badRequest("Current password is incorrect");
+                }
+
+                // Update password
+                user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                userRepository.save(user);
+
+                log.info("Password changed successfully for user ID: {}", userId);
+        }
+
+        private AuthResponse buildAuthResponse(User user, String token) {
+                return AuthResponse.builder()
+                                .token(token)
+                                .tokenType("Bearer")
+                                .userId(user.getId())
+                                .email(user.getEmail())
+                                .name(user.getName())
+                                .roles(user.getRoles().stream()
+                                                .map(role -> role.getName().name())
+                                                .collect(Collectors.toList()))
+                                .build();
+        }
 }

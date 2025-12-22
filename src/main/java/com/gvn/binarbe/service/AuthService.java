@@ -1,5 +1,6 @@
 package com.gvn.binarbe.service;
 
+import com.gvn.binarbe.dto.request.ChangePasswordRequest;
 import com.gvn.binarbe.dto.request.LoginRequest;
 import com.gvn.binarbe.dto.request.RegisterRequest;
 import com.gvn.binarbe.dto.response.AuthResponse;
@@ -24,4 +25,13 @@ public interface AuthService {
      * @return authentication response with JWT token
      */
     AuthResponse login(LoginRequest request);
+
+    /**
+     * Change user password.
+     * Requires current password verification before allowing password change.
+     *
+     * @param userId  the ID of the user changing their password
+     * @param request change password data containing current and new password
+     */
+    void changePassword(Long userId, ChangePasswordRequest request);
 }

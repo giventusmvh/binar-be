@@ -1,19 +1,25 @@
 package com.gvn.binarbe.controller;
 
+import com.gvn.binarbe.dto.request.ChangePasswordRequest;
 import com.gvn.binarbe.dto.request.LoginRequest;
 import com.gvn.binarbe.dto.request.RegisterRequest;
 import com.gvn.binarbe.dto.response.AuthResponse;
+import com.gvn.binarbe.entity.User;
+import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.service.AuthService;
 import com.gvn.binarbe.util.ApiResponse;
 import com.gvn.binarbe.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller for authentication operations.
- * Handles customer registration and user login.
+ * Handles customer registration, user login, and password management.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -21,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     /**
      * Register a new customer.
@@ -40,5 +47,23 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseUtil.ok("Login successful", response);
+    }
+
+    /**
+     * Change user password.
+     * Requires authentication and current password verification.
+     * POST /api/auth/change-password
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        // Get user ID from authenticated user
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> BusinessException.notFound("User not found"));
+
+        authService.changePassword(user.getId(), request);
+        return ResponseUtil.ok("Password changed successfully");
     }
 }
