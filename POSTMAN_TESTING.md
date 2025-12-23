@@ -9,9 +9,10 @@
 1. [Setup](#1-setup)
 2. [Authentication Flow](#2-authentication-flow)
 3. [Customer Flow](#3-customer-flow)
-4. [Loan Application Flow](#4-loan-application-flow)
-5. [Approval Workflow](#5-approval-workflow)
-6. [SuperAdmin Flow](#6-superadmin-flow)
+4. [Plafond Selection Flow](#4-plafond-selection-flow)
+5. [Loan Application Flow](#5-loan-application-flow)
+6. [Approval Workflow](#6-approval-workflow)
+7. [SuperAdmin Flow](#7-superadmin-flow)
 
 ---
 
@@ -346,20 +347,117 @@ if (pm.response.code === 201) {
 
 ---
 
-## 4. Loan Application Flow
+## 4. Plafond Selection Flow
 
-### 4.1 Submit Loan Application
+> **Important:** Customer must select a plafond (credit limit) before submitting loans.
+> Products define the maximum limits for amount, tenor, and minimum interest rate.
 
-**Endpoint:** `POST /api/loans`  
+### 4.1 Select Plafond
+
+**Endpoint:** `POST /api/customer/plafond`  
 **Auth:** Bearer Token (CUSTOMER)
-
-> ⚠️ **Prerequisite:** Customer profile must be complete (NIK, birthdate, phone, address)
 
 ```json
 // Request Body
 {
-  "productId": 2,
-  "branchId": 1
+  "productId": 1
+}
+```
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "Plafond selected successfully",
+  "data": {
+    "id": 1,
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000,
+      "tenor": 12,
+      "interestRate": 12.0
+    },
+    "assignedAt": "2025-12-23T21:55:00",
+    "isActive": true
+  },
+  "timestamp": "2025-12-23T21:55:00"
+}
+```
+
+```json
+// Error Response - Already has plafond (400)
+{
+  "success": false,
+  "message": "You already have an active plafond. Cannot select another one.",
+  "timestamp": "2025-12-23T21:55:00"
+}
+```
+
+---
+
+### 4.2 Get My Plafond
+
+**Endpoint:** `GET /api/customer/plafond`  
+**Auth:** Bearer Token (CUSTOMER)
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": 1,
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000,
+      "tenor": 12,
+      "interestRate": 12.0
+    },
+    "assignedAt": "2025-12-23T21:55:00",
+    "isActive": true
+  },
+  "timestamp": "2025-12-23T21:55:00"
+}
+```
+
+```json
+// Error Response - No plafond (404)
+{
+  "success": false,
+  "message": "You don't have an active plafond. Please select a plafond first.",
+  "timestamp": "2025-12-23T21:55:00"
+}
+```
+
+---
+
+## 5. Loan Application Flow
+
+### 5.1 Submit Loan Application
+
+**Endpoint:** `POST /api/loans`  
+**Auth:** Bearer Token (CUSTOMER)
+
+> ⚠️ **Prerequisites:**
+>
+> 1. Customer profile must be complete (NIK, birthdate, phone, address)
+> 2. Customer must have selected a plafond first
+
+> **Validation Rules:**
+>
+> - `amount` must be ≤ plafond product amount
+> - `tenor` must be ≤ plafond product tenor
+> - `interestRate` must be ≥ plafond product interest rate
+
+```json
+// Request Body (NEW FORMAT - product derived from plafond)
+{
+  "branchId": 1,
+  "amount": 3000000,
+  "tenor": 6,
+  "interestRate": 12.0
 }
 ```
 
@@ -370,28 +468,45 @@ if (pm.response.code === 201) {
   "message": "Loan application submitted successfully",
   "data": {
     "id": 1,
-    "customerId": 1,
     "customerName": "John Doe",
-    "productId": 2,
-    "productName": "SILVER",
-    "amount": 10000000,
-    "tenor": 24,
-    "interestRate": 10.0,
-    "branchId": 1,
-    "branchName": "Jakarta",
+    "customerEmail": "john.doe@email.com",
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000,
+      "tenor": 12,
+      "interestRate": 12.0
+    },
+    "branch": {
+      "id": 1,
+      "code": "JKT",
+      "location": "Jakarta"
+    },
+    "requestedAmount": 3000000,
+    "requestedTenor": 6,
+    "requestedRate": 12.0,
     "status": "SUBMITTED",
-    "createdAt": "2025-12-22T10:00:00"
+    "createdAt": "2025-12-23T22:00:00"
   },
-  "timestamp": "2025-12-22T10:00:00"
+  "timestamp": "2025-12-23T22:00:00"
 }
 ```
 
 ```json
-// Error Response - Incomplete Profile (400)
+// Error Response - No plafond (400)
 {
   "success": false,
-  "message": "Profile must be complete before submitting loan application",
-  "timestamp": "2025-12-22T10:00:00"
+  "message": "Please select a plafond first before submitting a loan application.",
+  "timestamp": "2025-12-23T22:00:00"
+}
+```
+
+```json
+// Error Response - Amount exceeds limit (400)
+{
+  "success": false,
+  "message": "Requested amount exceeds plafond limit. Maximum: Rp 5000000",
+  "timestamp": "2025-12-23T22:00:00"
 }
 ```
 

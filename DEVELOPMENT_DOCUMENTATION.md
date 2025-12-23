@@ -282,11 +282,36 @@ public class LoanApplication {
     @ManyToOne
     private Branch branch;
 
+    // Requested loan values (within plafond limits)
+    private BigDecimal requestedAmount;
+    private Integer requestedTenor;
+    private BigDecimal requestedRate;
+
     @Enumerated(EnumType.STRING)
     private LoanStatus status;
 
     @OneToMany(mappedBy = "loanApplication")
     private List<LoanApplicationHistory> histories;
+}
+```
+
+**New Entity: UserPlafond.java** (Credit Limit)
+
+```java
+@Entity
+@Table(name = "user_plafonds")
+public class UserPlafond {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne
+    private User user;           // One plafond per user
+
+    @ManyToOne
+    private Product product;     // Selected product as credit limit
+
+    private LocalDateTime assignedAt;
+    private Boolean isActive;
 }
 ```
 
@@ -349,17 +374,18 @@ List<LoanApplicationHistory> findByLoanApplicationIdWithApprover(
 
 ### Request DTOs (9 classes)
 
-| DTO                       | Purpose                      | Validations                        |
-| ------------------------- | ---------------------------- | ---------------------------------- |
-| RegisterRequest           | Customer registration        | @NotBlank, @Email, @Size           |
-| LoginRequest              | User login                   | @NotBlank, @Email                  |
-| ChangePasswordRequest     | Change password              | @NotBlank, @Size(min=6)            |
-| UpdateProfileRequest      | Profile update               | @NotNull, @Pattern (NIK)           |
-| LoanApplicationRequest    | Submit loan                  | @NotNull productId, branchId       |
-| ApprovalRequest           | Approve/reject               | @Size(max=1000) note               |
-| AssignRoleRequest         | Role assignment              | @NotNull roleId                    |
-| AssignPermissionRequest   | Permission update            | @NotEmpty permissionIds            |
-| CreateInternalUserRequest | Create internal user (admin) | @NotBlank, @Email, @NotNull roleId |
+| DTO                       | Purpose                      | Validations                            |
+| ------------------------- | ---------------------------- | -------------------------------------- |
+| RegisterRequest           | Customer registration        | @NotBlank, @Email, @Size               |
+| LoginRequest              | User login                   | @NotBlank, @Email                      |
+| ChangePasswordRequest     | Change password              | @NotBlank, @Size(min=6)                |
+| UpdateProfileRequest      | Profile update               | @NotNull, @Pattern (NIK)               |
+| SelectPlafondRequest      | Select credit limit          | @NotNull productId                     |
+| LoanApplicationRequest    | Submit loan                  | @NotNull amount, tenor, rate, branchId |
+| ApprovalRequest           | Approve/reject               | @Size(max=1000) note                   |
+| AssignRoleRequest         | Role assignment              | @NotNull roleId                        |
+| AssignPermissionRequest   | Permission update            | @NotEmpty permissionIds                |
+| CreateInternalUserRequest | Create internal user (admin) | @NotBlank, @Email, @NotNull roleId     |
 
 ### Response DTOs (9 classes)
 
@@ -368,11 +394,12 @@ List<LoanApplicationHistory> findByLoanApplicationIdWithApprover(
 | AuthResponse            | JWT token + user info     |
 | UserResponse            | User details + roles      |
 | UserProfileResponse     | Profile + isComplete flag |
+| UserPlafondResponse     | Plafond + product details |
 | ProductResponse         | Product details           |
 | BranchResponse          | Branch details            |
 | RoleResponse            | Role + permissions        |
 | PermissionResponse      | Permission details        |
-| LoanApplicationResponse | Loan + status             |
+| LoanApplicationResponse | Loan + requested values   |
 | LoanHistoryResponse     | Approval history entry    |
 
 ---
@@ -539,10 +566,13 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     public LoanApplicationResponse submitLoan(String email, LoanApplicationRequest request) {
         // 1. Get customer
         // 2. Validate profile is COMPLETE (NIK, birthdate, phone, address)
-        // 3. Get product and branch
-        // 4. Create LoanApplication with SUBMITTED status
-        // 5. Create initial history entry
-        // 6. Return response
+        // 3. Get user's active plafond
+        // 4. Validate amount <= plafond.amount
+        // 5. Validate tenor <= plafond.tenor
+        // 6. Validate rate >= plafond.rate
+        // 7. Create LoanApplication with requested values
+        // 8. Create initial history entry
+        // 9. Return response
     }
 }
 ```
@@ -602,7 +632,9 @@ POST   /api/auth/change-password - Change password (requires current password)
 CUSTOMER ENDPOINTS (ROLE_CUSTOMER):
 GET    /api/customer/profile  - Get profile
 PUT    /api/customer/profile  - Update profile
-POST   /api/loans             - Submit loan
+POST   /api/customer/plafond  - Select plafond/credit limit
+GET    /api/customer/plafond  - Get my plafond
+POST   /api/loans             - Submit loan (with amount, tenor, rate)
 GET    /api/loans             - My loans
 GET    /api/loans/{id}        - Loan details
 GET    /api/loans/{id}/history - Approval history

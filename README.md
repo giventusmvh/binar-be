@@ -45,6 +45,7 @@ This system provides:
 | ---------------------------- | ------------------------------------------ |
 | `users`                      | All users (customers and internal staff)   |
 | `user_profiles`              | Customer personal information              |
+| `user_plafonds`              | Customer credit limits/plafond selection   |
 | `branch`                     | Physical branch locations                  |
 | `roles`                      | System roles (SUPERADMIN, MARKETING, etc.) |
 | `permissions`                | Granular access permissions                |
@@ -156,14 +157,16 @@ Customer submits loan
 
 ### Customer (Requires CUSTOMER role)
 
-| Method | Endpoint                  | Description             |
-| ------ | ------------------------- | ----------------------- |
-| GET    | `/api/customer/profile`   | Get current profile     |
-| PUT    | `/api/customer/profile`   | Update profile          |
-| POST   | `/api/loans`              | Submit loan application |
-| GET    | `/api/loans`              | Get my loans            |
-| GET    | `/api/loans/{id}`         | Get loan details        |
-| GET    | `/api/loans/{id}/history` | Get approval history    |
+| Method | Endpoint                  | Description                     |
+| ------ | ------------------------- | ------------------------------- |
+| GET    | `/api/customer/profile`   | Get current profile             |
+| PUT    | `/api/customer/profile`   | Update profile                  |
+| POST   | `/api/customer/plafond`   | Select plafond (credit limit)   |
+| GET    | `/api/customer/plafond`   | Get my plafond                  |
+| POST   | `/api/loans`              | Submit loan (amount/tenor/rate) |
+| GET    | `/api/loans`              | Get my loans                    |
+| GET    | `/api/loans/{id}`         | Get loan details                |
+| GET    | `/api/loans/{id}/history` | Get approval history            |
 
 ### Approval (Requires MARKETING, BRANCH_MANAGER, or BACKOFFICE role)
 
@@ -319,7 +322,19 @@ Content-Type: application/json
 }
 ```
 
-### 5. Submit Loan Application
+### 5. Select Plafond (Required before Loan)
+
+```
+POST http://localhost:8080/api/customer/plafond
+Authorization: Bearer <customer_token>
+Content-Type: application/json
+
+{
+  "productId": 1
+}
+```
+
+### 6. Submit Loan Application
 
 ```
 POST http://localhost:8080/api/loans
@@ -327,10 +342,14 @@ Authorization: Bearer <customer_token>
 Content-Type: application/json
 
 {
-  "productId": 1,
-  "branchId": 1
+  "branchId": 1,
+  "amount": 3000000,
+  "tenor": 6,
+  "interestRate": 12.00
 }
 ```
+
+> Note: amount ≤ plafond max, tenor ≤ plafond max, rate ≥ plafond min
 
 ### 6. Login as Marketing (Jakarta)
 

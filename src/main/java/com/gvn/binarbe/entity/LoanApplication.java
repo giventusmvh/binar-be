@@ -37,6 +37,15 @@ public class LoanApplication {
     @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
 
+    @Column(name = "requested_amount", nullable = false, precision = 15, scale = 2)
+    private java.math.BigDecimal requestedAmount;
+
+    @Column(name = "requested_tenor", nullable = false)
+    private Integer requestedTenor; // in months
+
+    @Column(name = "requested_rate", nullable = false, precision = 5, scale = 2)
+    private java.math.BigDecimal requestedRate; // percentage per annum
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
