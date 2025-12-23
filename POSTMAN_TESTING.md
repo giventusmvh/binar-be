@@ -677,7 +677,90 @@ if (pm.response.code === 201) {
 
 ## 6. SuperAdmin Flow
 
-### 6.1 Get All Users
+### 6.1 Create Internal User
+
+**Endpoint:** `POST /api/admin/users`  
+**Auth:** Bearer Token (SUPERADMIN)
+
+> Create a new internal user with role and optional branch assignment.
+>
+> - MARKETING/BRANCH_MANAGER roles require a branch
+> - SUPERADMIN/BACKOFFICE roles do not require a branch
+> - Cannot assign CUSTOMER role to internal users
+
+```json
+// Request Body - Create Marketing User
+{
+  "name": "New Marketing",
+  "email": "new.marketing@loan.com",
+  "password": "password123",
+  "roleId": 2,
+  "branchId": 1
+}
+```
+
+```json
+// Request Body - Create Backoffice User (no branch required)
+{
+  "name": "New Backoffice",
+  "email": "new.backoffice@loan.com",
+  "password": "password123",
+  "roleId": 4
+}
+```
+
+```json
+// Success Response (201 Created)
+{
+  "success": true,
+  "message": "Internal user created successfully",
+  "data": {
+    "id": 10,
+    "name": "New Marketing",
+    "email": "new.marketing@loan.com",
+    "userType": "INTERNAL",
+    "isActive": true,
+    "roles": ["MARKETING"],
+    "branch": {
+      "id": 1,
+      "code": "JKT",
+      "location": "Jakarta"
+    }
+  },
+  "timestamp": "2025-12-23T20:00:00"
+}
+```
+
+```json
+// Error Response - Missing branch for MARKETING role (400)
+{
+  "success": false,
+  "message": "Branch is required for MARKETING role",
+  "timestamp": "2025-12-23T20:00:00"
+}
+```
+
+```json
+// Error Response - Email already exists (409)
+{
+  "success": false,
+  "message": "Email already exists",
+  "timestamp": "2025-12-23T20:00:00"
+}
+```
+
+```json
+// Error Response - Cannot assign CUSTOMER role (400)
+{
+  "success": false,
+  "message": "Cannot assign CUSTOMER role to internal user",
+  "timestamp": "2025-12-23T20:00:00"
+}
+```
+
+---
+
+### 6.2 Get All Users
 
 **Endpoint:** `GET /api/admin/users`  
 **Auth:** Bearer Token (SUPERADMIN)
@@ -715,7 +798,7 @@ if (pm.response.code === 201) {
 
 ---
 
-### 6.2 Get User by ID
+### 6.3 Get User by ID
 
 **Endpoint:** `GET /api/admin/users/{id}`  
 **Auth:** Bearer Token (SUPERADMIN)
@@ -741,7 +824,7 @@ if (pm.response.code === 201) {
 
 ---
 
-### 6.3 Assign Role to User
+### 6.4 Assign Role to User
 
 **Endpoint:** `POST /api/admin/users/{id}/roles`  
 **Auth:** Bearer Token (SUPERADMIN)
@@ -774,7 +857,7 @@ if (pm.response.code === 201) {
 
 ---
 
-### 6.4 Remove Role from User
+### 6.5 Remove Role from User
 
 **Endpoint:** `DELETE /api/admin/users/{userId}/roles/{roleId}`  
 **Auth:** Bearer Token (SUPERADMIN)
@@ -800,7 +883,7 @@ if (pm.response.code === 201) {
 
 ---
 
-### 6.5 Get All Roles
+### 6.6 Get All Roles
 
 **Endpoint:** `GET /api/admin/roles`  
 **Auth:** Bearer Token (SUPERADMIN)
@@ -856,7 +939,7 @@ if (pm.response.code === 201) {
 
 ---
 
-### 6.6 Update Role Permissions
+### 6.7 Update Role Permissions
 
 **Endpoint:** `PUT /api/admin/roles/{id}/permissions`  
 **Auth:** Bearer Token (SUPERADMIN)
@@ -889,7 +972,7 @@ if (pm.response.code === 201) {
 
 ---
 
-### 6.7 Get All Permissions
+### 6.8 Get All Permissions
 
 **Endpoint:** `GET /api/admin/permissions`  
 **Auth:** Bearer Token (SUPERADMIN)

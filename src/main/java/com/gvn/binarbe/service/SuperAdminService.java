@@ -2,6 +2,7 @@ package com.gvn.binarbe.service;
 
 import com.gvn.binarbe.dto.request.AssignPermissionRequest;
 import com.gvn.binarbe.dto.request.AssignRoleRequest;
+import com.gvn.binarbe.dto.request.CreateInternalUserRequest;
 import com.gvn.binarbe.dto.response.PermissionResponse;
 import com.gvn.binarbe.dto.response.RoleResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
@@ -12,6 +13,14 @@ import java.util.List;
  * Service interface for superadmin operations.
  */
 public interface SuperAdminService {
+
+    /**
+     * Create a new internal user with role and optional branch assignment.
+     *
+     * @param request internal user creation data
+     * @return created user
+     */
+    UserResponse createInternalUser(CreateInternalUserRequest request);
 
     /**
      * Get all users in the system.

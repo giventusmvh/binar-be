@@ -2,6 +2,7 @@ package com.gvn.binarbe.controller;
 
 import com.gvn.binarbe.dto.request.AssignPermissionRequest;
 import com.gvn.binarbe.dto.request.AssignRoleRequest;
+import com.gvn.binarbe.dto.request.CreateInternalUserRequest;
 import com.gvn.binarbe.dto.response.PermissionResponse;
 import com.gvn.binarbe.dto.response.RoleResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
@@ -25,6 +26,18 @@ import java.util.List;
 public class SuperAdminController {
 
     private final SuperAdminService superAdminService;
+
+    /**
+     * Create a new internal user with role and branch assignment.
+     * POST /api/admin/users
+     * Requires SUPERADMIN role.
+     */
+    @PostMapping("/users")
+    public ResponseEntity<ApiResponse<UserResponse>> createInternalUser(
+            @Valid @RequestBody CreateInternalUserRequest request) {
+        UserResponse response = superAdminService.createInternalUser(request);
+        return ResponseUtil.created("Internal user created successfully", response);
+    }
 
     /**
      * Get all users in the system.

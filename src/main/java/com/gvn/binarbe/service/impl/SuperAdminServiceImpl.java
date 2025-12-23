@@ -2,17 +2,23 @@ package com.gvn.binarbe.service.impl;
 
 import com.gvn.binarbe.dto.request.AssignPermissionRequest;
 import com.gvn.binarbe.dto.request.AssignRoleRequest;
+import com.gvn.binarbe.dto.request.CreateInternalUserRequest;
 import com.gvn.binarbe.dto.response.*;
+import com.gvn.binarbe.entity.Branch;
 import com.gvn.binarbe.entity.Permission;
 import com.gvn.binarbe.entity.Role;
 import com.gvn.binarbe.entity.User;
+import com.gvn.binarbe.enums.RoleName;
+import com.gvn.binarbe.enums.UserType;
 import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.repository.BranchRepository;
 import com.gvn.binarbe.repository.PermissionRepository;
 import com.gvn.binarbe.repository.RoleRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.service.SuperAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +38,61 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final BranchRepository branchRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    @Transactional
+    public UserResponse createInternalUser(CreateInternalUserRequest request) {
+        log.info("Creating internal user with email: {}", request.getEmail());
+
+        // Validate email uniqueness
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw BusinessException.conflict("Email already exists");
+        }
+
+        // Get and validate role
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(() -> BusinessException.notFound("Role not found"));
+
+        // Cannot assign CUSTOMER role to internal user
+        if (role.getName() == RoleName.CUSTOMER) {
+            throw BusinessException.badRequest("Cannot assign CUSTOMER role to internal user");
+        }
+
+        // Validate branch requirement based on role
+        Branch branch = null;
+        boolean branchRequired = role.getName() == RoleName.MARKETING
+                || role.getName() == RoleName.BRANCH_MANAGER;
+
+        if (branchRequired && request.getBranchId() == null) {
+            throw BusinessException.badRequest("Branch is required for " + role.getName() + " role");
+        }
+
+        if (request.getBranchId() != null) {
+            branch = branchRepository.findById(request.getBranchId())
+                    .orElseThrow(() -> BusinessException.notFound("Branch not found"));
+        }
+
+        // Create user
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .userType(UserType.INTERNAL)
+                .isActive(true)
+                .branch(branch)
+                .roles(roles)
+                .build();
+
+        user = userRepository.save(user);
+        log.info("Internal user created successfully with ID: {}", user.getId());
+
+        return mapToUserResponse(user);
+    }
 
     @Override
     @Transactional(readOnly = true)

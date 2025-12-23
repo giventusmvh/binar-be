@@ -347,18 +347,19 @@ List<LoanApplicationHistory> findByLoanApplicationIdWithApprover(
 
 ## 5. Phase 4: DTOs
 
-### Request DTOs (8 classes)
+### Request DTOs (9 classes)
 
-| DTO                     | Purpose               | Validations                  |
-| ----------------------- | --------------------- | ---------------------------- |
-| RegisterRequest         | Customer registration | @NotBlank, @Email, @Size     |
-| LoginRequest            | User login            | @NotBlank, @Email            |
-| ChangePasswordRequest   | Change password       | @NotBlank, @Size(min=6)      |
-| UpdateProfileRequest    | Profile update        | @NotNull, @Pattern (NIK)     |
-| LoanApplicationRequest  | Submit loan           | @NotNull productId, branchId |
-| ApprovalRequest         | Approve/reject        | @Size(max=1000) note         |
-| AssignRoleRequest       | Role assignment       | @NotNull roleId              |
-| AssignPermissionRequest | Permission update     | @NotEmpty permissionIds      |
+| DTO                       | Purpose                      | Validations                        |
+| ------------------------- | ---------------------------- | ---------------------------------- |
+| RegisterRequest           | Customer registration        | @NotBlank, @Email, @Size           |
+| LoginRequest              | User login                   | @NotBlank, @Email                  |
+| ChangePasswordRequest     | Change password              | @NotBlank, @Size(min=6)            |
+| UpdateProfileRequest      | Profile update               | @NotNull, @Pattern (NIK)           |
+| LoanApplicationRequest    | Submit loan                  | @NotNull productId, branchId       |
+| ApprovalRequest           | Approve/reject               | @Size(max=1000) note               |
+| AssignRoleRequest         | Role assignment              | @NotNull roleId                    |
+| AssignPermissionRequest   | Permission update            | @NotEmpty permissionIds            |
+| CreateInternalUserRequest | Create internal user (admin) | @NotBlank, @Email, @NotNull roleId |
 
 ### Response DTOs (9 classes)
 
@@ -613,6 +614,7 @@ POST   /api/approval/{id}/reject  - Reject loan
 POST   /api/approval/{id}/return  - Return (BACKOFFICE only)
 
 ADMIN ENDPOINTS (ROLE_SUPERADMIN):
+POST   /api/admin/users               - Create internal user (with role + branch)
 GET    /api/admin/users               - List users
 GET    /api/admin/users/{id}          - User details
 POST   /api/admin/users/{id}/roles    - Assign role
