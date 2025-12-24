@@ -127,7 +127,7 @@ curl -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "marketing.jkt@loan.com",
-    "password": "internal123"
+    "password": "marketing123"
   }'
 
 MARKETING_TOKEN="<token_from_response>"
@@ -338,6 +338,19 @@ curl -X POST "$BASE_URL/api/customer/plafond" \
 # ✅ Success - Get active plafond
 curl -X GET "$BASE_URL/api/customer/plafond" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: 200 OK
+# {
+#   "success": true,
+#   "data": {
+#     "id": 1,
+#     "product": {"id": 1, "name": "BRONZE", "amount": 5000000, "tenor": 12, "interestRate": 12.0},
+#     "originalAmount": 5000000,
+#     "remainingAmount": 5000000,
+#     "assignedAt": "2025-12-24T10:00:00",
+#     "isActive": true
+#   }
+# }
 ```
 
 ```bash
@@ -348,6 +361,70 @@ curl -X GET "$BASE_URL/api/customer/plafond" \
 
 # Response: 404 Not Found
 # {"success": false, "message": "You don't have an active plafond. Please select a plafond first."}
+```
+
+### 4.2.1 Plafond Remaining Amount Flow (E2E Test)
+
+```bash
+# This test demonstrates the full plafond lifecycle:
+# 1. Select plafond (5M)
+# 2. Submit loan (3M) → Approve → remainingAmount = 2M
+# 3. Submit loan (2M) → Approve → remainingAmount = 0, isActive = false
+# 4. Select new plafond (now allowed since old is inactive)
+
+# --- Step 1: Check initial plafond (should show 5M remaining) ---
+curl -X GET "$BASE_URL/api/customer/plafond" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: originalAmount: 5000000, remainingAmount: 5000000
+
+# --- Step 2: Submit first loan (3M from 5M) ---
+curl -X POST "$BASE_URL/api/loans" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{"branchId": 1, "amount": 3000000, "tenor": 6, "interestRate": 12.0}'
+
+# (Approve through Marketing → BM → Backoffice)
+
+# --- Step 3: Check plafond after approval (should show 2M remaining) ---
+curl -X GET "$BASE_URL/api/customer/plafond" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: originalAmount: 5000000, remainingAmount: 2000000
+
+# --- Step 4: Try to submit loan exceeding remaining (3M > 2M) ---
+curl -X POST "$BASE_URL/api/loans" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{"branchId": 1, "amount": 3000000, "tenor": 6, "interestRate": 12.0}'
+
+# Response: 400 Bad Request
+# {"success": false, "message": "Requested amount exceeds remaining plafond. Remaining: Rp 2000000.00"}
+
+# --- Step 5: Submit loan for exact remaining (2M) and approve ---
+curl -X POST "$BASE_URL/api/loans" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{"branchId": 1, "amount": 2000000, "tenor": 6, "interestRate": 12.0}'
+
+# (Approve through Marketing → BM → Backoffice)
+
+# --- Step 6: Check plafond (now inactive) ---
+curl -X GET "$BASE_URL/api/customer/plafond" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: 404 Not Found
+# {"success": false, "message": "You don't have an active plafond. Please select a plafond first."}
+# (Because remainingAmount = 0, isActive was set to false)
+
+# --- Step 7: Select new plafond (now allowed) ---
+curl -X POST "$BASE_URL/api/customer/plafond" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{"productId": 2}'
+
+# Response: 200 OK - New SILVER plafond selected
+# originalAmount: 10000000, remainingAmount: 10000000
 ```
 
 ### 4.3 Submit Loan
@@ -525,7 +602,7 @@ curl -X GET "$BASE_URL/api/loans/1/history" \
 # Login as Marketing Jakarta
 curl -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "marketing.jkt@loan.com", "password": "internal123"}'
+  -d '{"email": "marketing.jkt@loan.com", "password": "marketing123"}'
 
 MARKETING_TOKEN="<token>"
 
@@ -580,7 +657,7 @@ curl -X POST "$BASE_URL/api/approval/1/approve" \
 # Login as Branch Manager Jakarta
 curl -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "bm.jkt@loan.com", "password": "internal123"}'
+  -d '{"email": "bm.jkt@loan.com", "password": "bm123"}'
 
 BM_TOKEN="<token>"
 
@@ -606,7 +683,7 @@ curl -X POST "$BASE_URL/api/approval/1/approve" \
 # Login as Backoffice
 curl -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "backoffice@loan.com", "password": "internal123"}'
+  -d '{"email": "backoffice@loan.com", "password": "backoffice123"}'
 
 BACKOFFICE_TOKEN="<token>"
 
@@ -894,7 +971,7 @@ echo "Loan ID: $LOAN_ID"
 echo -e "\n=== 3. Marketing Approve ==="
 MARKETING_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "marketing.jkt@loan.com", "password": "internal123"}' \
+  -d '{"email": "marketing.jkt@loan.com", "password": "marketing123"}' \
   | jq -r '.data.token')
 curl -s -X POST "$BASE_URL/api/approval/$LOAN_ID/approve" \
   -H "Content-Type: application/json" \
@@ -904,7 +981,7 @@ curl -s -X POST "$BASE_URL/api/approval/$LOAN_ID/approve" \
 echo -e "\n=== 4. Branch Manager Approve ==="
 BM_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "bm.jkt@loan.com", "password": "internal123"}' \
+  -d '{"email": "bm.jkt@loan.com", "password": "bm123"}' \
   | jq -r '.data.token')
 curl -s -X POST "$BASE_URL/api/approval/$LOAN_ID/approve" \
   -H "Content-Type: application/json" \
@@ -914,7 +991,7 @@ curl -s -X POST "$BASE_URL/api/approval/$LOAN_ID/approve" \
 echo -e "\n=== 5. Backoffice Final Approve ==="
 BACKOFFICE_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "backoffice@loan.com", "password": "internal123"}' \
+  -d '{"email": "backoffice@loan.com", "password": "backoffice123"}' \
   | jq -r '.data.token')
 curl -s -X POST "$BASE_URL/api/approval/$LOAN_ID/approve" \
   -H "Content-Type: application/json" \

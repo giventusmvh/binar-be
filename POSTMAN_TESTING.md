@@ -122,7 +122,7 @@ if (pm.response.code === 201) {
 // Request Body - Marketing Login
 {
   "email": "marketing.jkt@loan.com",
-  "password": "internal123"
+  "password": "marketing123"
 }
 ```
 
@@ -130,7 +130,7 @@ if (pm.response.code === 201) {
 // Request Body - Branch Manager Login
 {
   "email": "bm.jkt@loan.com",
-  "password": "internal123"
+  "password": "bm123"
 }
 ```
 
@@ -138,7 +138,7 @@ if (pm.response.code === 201) {
 // Request Body - Backoffice Login
 {
   "email": "backoffice@loan.com",
-  "password": "internal123"
+  "password": "backoffice123"
 }
 ```
 
@@ -452,6 +452,36 @@ if (pm.response.code === 201) {
   "success": false,
   "message": "You don't have an active plafond. Please select a plafond first.",
   "timestamp": "2025-12-23T21:55:00"
+}
+```
+
+### 4.3 Plafond Remaining Amount Flow (E2E Test)
+
+> **Testing Lifecycle:** This flow demonstrates how `remainingAmount` decreases and plafond becomes inactive.
+
+| Step | Action                     | Expected Result                                                        |
+| ---- | -------------------------- | ---------------------------------------------------------------------- |
+| 1    | Select BRONZE plafond (5M) | `originalAmount: 5M, remainingAmount: 5M, isActive: true`              |
+| 2    | Submit loan 3M → Approve   | `remainingAmount: 2M`                                                  |
+| 3    | Try submit loan 3M         | ❌ "Requested amount exceeds remaining plafond. Remaining: Rp 2000000" |
+| 4    | Submit loan 2M → Approve   | `remainingAmount: 0, isActive: false`                                  |
+| 5    | Get plafond                | ❌ "You don't have an active plafond"                                  |
+| 6    | Select new SILVER plafond  | ✅ Allowed (old plafond is inactive)                                   |
+
+```json
+// After loan approval, plafond response shows reduced remaining:
+{
+  "data": {
+    "originalAmount": 5000000.00,
+    "remainingAmount": 2000000.00,
+    "isActive": true
+  }
+}
+
+// After plafond is depleted (remainingAmount = 0):
+{
+  "success": false,
+  "message": "You don't have an active plafond. Please select a plafond first."
 }
 ```
 
@@ -1157,27 +1187,40 @@ if (pm.response.code === 201) {
 
 ### Scenario 1: Complete Loan Approval Flow
 
-1. **Login as Customer**: `john.doe@email.com` → Save token
-2. **Submit Loan**: `POST /api/loans` with productId: 2, branchId: 1 → Save loan_id
-3. **Login as Marketing**: `marketing.jkt@loan.com` → Save token
+1. **Login as Customer**: `john.doe@email.com` / `customer123` → Save token
+2. **Submit Loan**: `POST /api/loans` with branchId: 1, amount, tenor → Save loan_id
+3. **Login as Marketing**: `marketing.jkt@loan.com` / `marketing123` → Save token
 4. **Get Pending**: `GET /api/approval/pending` → Should see the loan
 5. **Approve**: `POST /api/approval/{loan_id}/approve`
-6. **Login as Branch Manager**: `bm.jkt@loan.com` → Save token
+6. **Login as Branch Manager**: `bm.jkt@loan.com` / `bm123` → Save token
 7. **Get Pending**: `GET /api/approval/pending` → Should see the loan
 8. **Approve**: `POST /api/approval/{loan_id}/approve`
-9. **Login as Backoffice**: `backoffice@loan.com` → Save token
+9. **Login as Backoffice**: `backoffice@loan.com` / `backoffice123` → Save token
 10. **Get Pending**: `GET /api/approval/pending` → Should see the loan
 11. **Approve**: `POST /api/approval/{loan_id}/approve` → Status becomes APPROVED
 12. **Login as Customer**: Verify loan status via `GET /api/loans/{loan_id}`
 
-### Scenario 2: Incomplete Profile Rejection
+### Scenario 2: Plafond Depletion Flow
 
-1. **Login as Jane Smith**: `jane.smith@email.com` (has empty profile)
+1. **Login as Customer**: `john.doe@email.com` / `customer123`
+2. **Select Plafond**: `POST /api/customer/plafond` with productId: 1 (BRONZE 5M)
+3. **Check Plafond**: `GET /api/customer/plafond` → remainingAmount: 5000000
+4. **Submit Loan 3M**: `POST /api/loans` → Approve through full flow
+5. **Check Plafond**: remainingAmount: 2000000
+6. **Try Submit 3M**: Should fail - "exceeds remaining plafond"
+7. **Submit Loan 2M**: Approve through full flow
+8. **Check Plafond**: Returns 404 - plafond is inactive
+9. **Select New Plafond**: `POST /api/customer/plafond` with productId: 2 → Succeeds
+
+### Scenario 3: Incomplete Profile Rejection
+
+1. **Login as Jane Smith**: `jane.smith@email.com` / `customer123` (has empty profile)
 2. **Try Submit Loan**: `POST /api/loans` → Should get 400 error
 3. **Update Profile**: `PUT /api/customer/profile` with complete data
-4. **Retry Submit Loan**: Should succeed now
+4. **Select Plafond**: `POST /api/customer/plafond`
+5. **Retry Submit Loan**: Should succeed now
 
-### Scenario 3: Change Password
+### Scenario 4: Change Password
 
 1. **Login**: Any user
 2. **Change Password**: `POST /api/auth/change-password`
@@ -1186,4 +1229,43 @@ if (pm.response.code === 201) {
 
 ---
 
-_Documentation generated: 2025-12-22_
+## Error Response Reference
+
+| Endpoint                    | Error               | Status | Message                                             |
+| --------------------------- | ------------------- | ------ | --------------------------------------------------- |
+| **Auth**                    |                     |        |                                                     |
+| POST /auth/register         | Duplicate email     | 409    | Email already registered                            |
+| POST /auth/register         | Invalid email       | 400    | email: must be a valid email                        |
+| POST /auth/register         | Short password      | 400    | password: size must be between 6 and 100            |
+| POST /auth/login            | Wrong credentials   | 401    | Invalid email or password                           |
+| POST /auth/change-password  | Wrong current       | 400    | Current password is incorrect                       |
+| POST /auth/change-password  | Mismatch            | 400    | New password and confirm password do not match      |
+| **Profile**                 |                     |        |                                                     |
+| PUT /customer/profile       | Invalid NIK         | 400    | nik: NIK must be exactly 16 digits                  |
+| **Plafond**                 |                     |        |                                                     |
+| GET /customer/plafond       | No plafond          | 404    | You don't have an active plafond                    |
+| POST /customer/plafond      | Already has plafond | 400    | You already have an active plafond                  |
+| POST /customer/plafond      | Product not found   | 404    | Product not found                                   |
+| **Loan**                    |                     |        |                                                     |
+| POST /loans                 | No plafond          | 400    | Please select a plafond first                       |
+| POST /loans                 | Incomplete profile  | 400    | Please complete your profile...                     |
+| POST /loans                 | Amount exceeds      | 400    | Requested amount exceeds remaining plafond          |
+| POST /loans                 | Tenor exceeds       | 400    | Requested tenor exceeds plafond limit               |
+| POST /loans                 | Rate too low        | 400    | Interest rate cannot be lower than plafond minimum  |
+| POST /loans                 | Branch not found    | 404    | Branch not found                                    |
+| GET /loans/{id}             | Not owner           | 403    | You don't have access to this loan application      |
+| **Approval**                |                     |        |                                                     |
+| POST /approval/{id}/approve | Wrong status        | 400    | Loan is not in the correct status for your approval |
+| POST /approval/{id}/approve | Wrong branch        | 403    | You can only process loans from your branch         |
+| POST /approval/{id}/return  | Not backoffice      | 403    | Only Backoffice can return loan applications        |
+| **Admin**                   |                     |        |                                                     |
+| POST /admin/users           | Create customer     | 400    | Cannot create customer via admin endpoint           |
+| Any admin endpoint          | Not admin           | 403    | Access Denied                                       |
+| **General**                 |                     |        |                                                     |
+| Any authenticated           | No token            | 401    | Unauthorized                                        |
+| Any authenticated           | Invalid token       | 401    | Unauthorized                                        |
+| Any authenticated           | Expired token       | 401    | Unauthorized                                        |
+
+---
+
+_Documentation generated: 2025-12-24_
