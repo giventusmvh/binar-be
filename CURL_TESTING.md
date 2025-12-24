@@ -26,16 +26,16 @@ BASE_URL="http://localhost:8080"
 
 ### Pre-seeded Accounts
 
-| Email                    | Password      | Role                        |
-| ------------------------ | ------------- | --------------------------- |
-| `john.doe@email.com`     | `customer123` | CUSTOMER (complete profile) |
-| `jane.smith@email.com`   | `customer123` | CUSTOMER (empty profile)    |
-| `marketing.jkt@loan.com` | `internal123` | MARKETING (Jakarta)         |
-| `bm.jkt@loan.com`        | `internal123` | BRANCH_MANAGER (Jakarta)    |
-| `marketing.sby@loan.com` | `internal123` | MARKETING (Surabaya)        |
-| `bm.sby@loan.com`        | `internal123` | BRANCH_MANAGER (Surabaya)   |
-| `backoffice@loan.com`    | `internal123` | BACKOFFICE                  |
-| `admin@loan.com`         | `admin123`    | SUPERADMIN                  |
+| Email                    | Password        | Role                        |
+| ------------------------ | --------------- | --------------------------- |
+| `john.doe@email.com`     | `customer123`   | CUSTOMER (complete profile) |
+| `jane.smith@email.com`   | `customer123`   | CUSTOMER (empty profile)    |
+| `marketing.jkt@loan.com` | `marketing123`  | MARKETING (Jakarta)         |
+| `bm.jkt@loan.com`        | `bm123`         | BRANCH_MANAGER (Jakarta)    |
+| `marketing.sby@loan.com` | `marketing123`  | MARKETING (Surabaya)        |
+| `bm.sby@loan.com`        | `bm123`         | BRANCH_MANAGER (Surabaya)   |
+| `backoffice@loan.com`    | `backoffice123` | BACKOFFICE                  |
+| `admin@loan.com`         | `admin123`      | SUPERADMIN                  |
 
 ---
 

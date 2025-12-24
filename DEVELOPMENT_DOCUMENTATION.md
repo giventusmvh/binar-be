@@ -312,8 +312,8 @@ public class UserPlafond {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    private User user;           // One plafond per user
+    @ManyToOne
+    private User user;           // Multiple plafonds per user (only 1 active at a time)
 
     @ManyToOne
     private Product product;     // Selected product as credit limit

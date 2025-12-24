@@ -40,14 +40,14 @@ Create a Postman environment with these variables:
 
 ### Pre-seeded Test Accounts
 
-| Email                    | Password      | Role                  | Branch  |
-| ------------------------ | ------------- | --------------------- | ------- |
-| `john.doe@email.com`     | `customer123` | CUSTOMER              | -       |
-| `jane.smith@email.com`   | `customer123` | CUSTOMER (no profile) | -       |
-| `marketing.jkt@loan.com` | `internal123` | MARKETING             | Jakarta |
-| `bm.jkt@loan.com`        | `internal123` | BRANCH_MANAGER        | Jakarta |
-| `backoffice@loan.com`    | `internal123` | BACKOFFICE            | -       |
-| `admin@loan.com`         | `admin123`    | SUPERADMIN            | -       |
+| Email                    | Password        | Role                  | Branch  |
+| ------------------------ | --------------- | --------------------- | ------- |
+| `john.doe@email.com`     | `customer123`   | CUSTOMER              | -       |
+| `jane.smith@email.com`   | `customer123`   | CUSTOMER (no profile) | -       |
+| `marketing.jkt@loan.com` | `marketing123`  | MARKETING             | Jakarta |
+| `bm.jkt@loan.com`        | `bm123`         | BRANCH_MANAGER        | Jakarta |
+| `backoffice@loan.com`    | `backoffice123` | BACKOFFICE            | -       |
+| `admin@loan.com`         | `admin123`      | SUPERADMIN            | -       |
 
 ---
 
