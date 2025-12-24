@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Custom UserDetailsService implementation for loading user-specific data.
@@ -45,12 +46,22 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     /**
-     * Build granted authorities from user roles.
+     * Build granted authorities from user roles and permissions.
      * Role names are prefixed with "ROLE_" for Spring Security.
+     * Permissions are added directly as authorities.
      */
     private Collection<? extends GrantedAuthority> getAuthorities(User user) {
-        return user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name()))
-                .collect(Collectors.toList());
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        user.getRoles().forEach(role -> {
+            // Add role authority
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName().name()));
+
+            // Add permission authorities from each role
+            role.getPermissions()
+                    .forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission.getCode())));
+        });
+
+        return authorities;
     }
 }

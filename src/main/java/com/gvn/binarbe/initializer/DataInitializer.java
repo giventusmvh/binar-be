@@ -125,7 +125,15 @@ public class DataInitializer implements CommandLineRunner {
 
                                 // Branch permissions
                                 Permission.builder().code("BRANCH_READ").description("Read branches").build(),
-                                Permission.builder().code("BRANCH_MANAGE").description("Manage branches").build());
+                                Permission.builder().code("BRANCH_MANAGE").description("Manage branches").build(),
+
+                                // Profile permissions
+                                Permission.builder().code("PROFILE_READ").description("Read own profile").build(),
+                                Permission.builder().code("PROFILE_UPDATE").description("Update own profile").build(),
+
+                                // Plafond permissions
+                                Permission.builder().code("PLAFOND_READ").description("Read own plafond").build(),
+                                Permission.builder().code("PLAFOND_SELECT").description("Select a plafond").build());
 
                 permissionRepository.saveAll(permissions);
                 log.info("Created {} permissions", permissions.size());
@@ -163,6 +171,10 @@ public class DataInitializer implements CommandLineRunner {
                 Permission productManage = permissionRepository.findByCode("PRODUCT_MANAGE").orElseThrow();
                 Permission branchRead = permissionRepository.findByCode("BRANCH_READ").orElseThrow();
                 Permission branchManage = permissionRepository.findByCode("BRANCH_MANAGE").orElseThrow();
+                Permission profileRead = permissionRepository.findByCode("PROFILE_READ").orElseThrow();
+                Permission profileUpdate = permissionRepository.findByCode("PROFILE_UPDATE").orElseThrow();
+                Permission plafondRead = permissionRepository.findByCode("PLAFOND_READ").orElseThrow();
+                Permission plafondSelect = permissionRepository.findByCode("PLAFOND_SELECT").orElseThrow();
 
                 // SUPERADMIN - all permissions
                 Set<Permission> superadminPerms = new HashSet<>(permissionRepository.findAll());
@@ -196,9 +208,10 @@ public class DataInitializer implements CommandLineRunner {
                                 .permissions(backofficePerms)
                                 .build();
 
-                // CUSTOMER - loan creation and tracking
+                // CUSTOMER - loan creation, tracking, profile and plafond management
                 Set<Permission> customerPerms = new HashSet<>(Arrays.asList(
-                                loanCreate, loanRead, productRead, branchRead));
+                                loanCreate, loanRead, productRead, branchRead,
+                                profileRead, profileUpdate, plafondRead, plafondSelect));
                 Role customer = Role.builder()
                                 .name(RoleName.CUSTOMER)
                                 .permissions(customerPerms)

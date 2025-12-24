@@ -911,9 +911,136 @@ src/main/java/com/gvn/binarbe
    - BACKOFFICE: cross-branch access
 
 5. **Snapshot History**
+
    - Role and branch recorded at time of action
    - Preserved even if user role changes later
 
+6. **Dynamic Permission RBAC**
+   - Permissions loaded as `GrantedAuthority` alongside roles
+   - `@PreAuthorize` annotations enforce permission-based access
+   - Superadmin can dynamically assign/remove permissions per role
+   - Login response includes `permissions` array for frontend
+
 ---
 
-_Documentation generated: 2025-12-21_
+## 13. Dynamic Permission-Based Authorization
+
+### Overview
+
+The system uses a hybrid RBAC model:
+
+- **Static Roles**: 5 fixed roles (SUPERADMIN, MARKETING, BRANCH_MANAGER, BACKOFFICE, CUSTOMER)
+- **Dynamic Permissions**: Superadmin can assign/remove permissions per role at runtime
+
+### How Permissions Are Loaded
+
+```java
+// CustomUserDetailsService.java
+private Collection<? extends GrantedAuthority> getAuthorities(User user) {
+    Set<GrantedAuthority> authorities = new HashSet<>();
+
+    user.getRoles().forEach(role -> {
+        // Add role authority (e.g., ROLE_MARKETING)
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName().name()));
+
+        // Add permission authorities (e.g., LOAN_APPROVE_MARKETING)
+        role.getPermissions().forEach(permission ->
+            authorities.add(new SimpleGrantedAuthority(permission.getCode()))
+        );
+    });
+
+    return authorities;
+}
+```
+
+### Controller Protection with @PreAuthorize
+
+```java
+// ApprovalController.java
+@GetMapping("/pending")
+@PreAuthorize("hasAnyAuthority('LOAN_READ_BRANCH', 'LOAN_READ_ALL')")
+public ResponseEntity<...> getPendingLoans(...) { }
+
+@PostMapping("/{id}/approve")
+@PreAuthorize("hasAnyAuthority('LOAN_APPROVE_MARKETING', 'LOAN_APPROVE_BRANCH_MANAGER', 'LOAN_APPROVE_BACKOFFICE')")
+public ResponseEntity<...> approve(...) { }
+
+@PostMapping("/{id}/return")
+@PreAuthorize("hasAuthority('LOAN_RETURN')")
+public ResponseEntity<...> returnLoan(...) { }
+```
+
+### Login Response with Permissions
+
+```json
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiJ9...",
+    "tokenType": "Bearer",
+    "userId": 1,
+    "email": "marketing.jkt@loan.com",
+    "name": "Marketing Jakarta",
+    "roles": ["MARKETING"],
+    "permissions": [
+      "LOAN_READ_BRANCH",
+      "LOAN_APPROVE_MARKETING",
+      "LOAN_REJECT",
+      "PRODUCT_READ",
+      "BRANCH_READ"
+    ]
+  }
+}
+```
+
+### Available Permissions
+
+| Code                        | Description                | Default Roles                         |
+| --------------------------- | -------------------------- | ------------------------------------- |
+| LOAN_CREATE                 | Create loan applications   | CUSTOMER                              |
+| LOAN_READ                   | Read own loan applications | CUSTOMER                              |
+| LOAN_READ_BRANCH            | Read branch loans          | MARKETING, BRANCH_MANAGER             |
+| LOAN_READ_ALL               | Read all loans             | BACKOFFICE, SUPERADMIN                |
+| LOAN_APPROVE_MARKETING      | Approve as Marketing       | MARKETING                             |
+| LOAN_APPROVE_BRANCH_MANAGER | Approve as Branch Manager  | BRANCH_MANAGER                        |
+| LOAN_APPROVE_BACKOFFICE     | Final approval             | BACKOFFICE                            |
+| LOAN_REJECT                 | Reject loans               | MARKETING, BRANCH_MANAGER, BACKOFFICE |
+| LOAN_RETURN                 | Return for revision        | BACKOFFICE                            |
+| PROFILE_READ                | Read own profile           | CUSTOMER                              |
+| PROFILE_UPDATE              | Update own profile         | CUSTOMER                              |
+| PLAFOND_READ                | Read own plafond           | CUSTOMER                              |
+| PLAFOND_SELECT              | Select a plafond           | CUSTOMER                              |
+| USER_READ                   | Read users                 | BRANCH_MANAGER, SUPERADMIN            |
+| USER_CREATE                 | Create users               | SUPERADMIN                            |
+| USER_UPDATE                 | Update users               | SUPERADMIN                            |
+| USER_DELETE                 | Delete users               | SUPERADMIN                            |
+| ROLE_READ                   | Read roles                 | SUPERADMIN                            |
+| ROLE_ASSIGN                 | Assign roles               | SUPERADMIN                            |
+| ROLE_MANAGE                 | Manage permissions         | SUPERADMIN                            |
+| PRODUCT_READ                | Read products              | ALL                                   |
+| PRODUCT_MANAGE              | Manage products            | SUPERADMIN                            |
+| BRANCH_READ                 | Read branches              | ALL                                   |
+| BRANCH_MANAGE               | Manage branches            | SUPERADMIN                            |
+
+### Frontend Integration
+
+**Route Guard Example (Angular):**
+
+```typescript
+canActivate(route: ActivatedRouteSnapshot): boolean {
+  const requiredPermissions = route.data['permissions'] as string[];
+  const userPermissions = this.authService.getPermissions();
+  return requiredPermissions.some(p => userPermissions.includes(p));
+}
+```
+
+**Permission-Based UI Rendering:**
+
+```html
+<button *ngIf="hasPermission('LOAN_APPROVE_MARKETING')">Approve</button>
+<button *ngIf="hasPermission('LOAN_RETURN')">Return</button>
+```
+
+---
+
+_Documentation generated: 2025-12-24_

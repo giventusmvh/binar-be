@@ -78,7 +78,17 @@ Create a Postman environment with these variables:
     "userId": 10,
     "email": "test.customer@email.com",
     "name": "Test Customer",
-    "roles": ["CUSTOMER"]
+    "roles": ["CUSTOMER"],
+    "permissions": [
+      "LOAN_CREATE",
+      "LOAN_READ",
+      "PRODUCT_READ",
+      "BRANCH_READ",
+      "PROFILE_READ",
+      "PROFILE_UPDATE",
+      "PLAFOND_READ",
+      "PLAFOND_SELECT"
+    ]
   },
   "timestamp": "2025-12-22T10:00:00"
 }
@@ -151,7 +161,17 @@ if (pm.response.code === 201) {
     "userId": 1,
     "email": "john.doe@email.com",
     "name": "John Doe",
-    "roles": ["CUSTOMER"]
+    "roles": ["CUSTOMER"],
+    "permissions": [
+      "LOAN_CREATE",
+      "LOAN_READ",
+      "PRODUCT_READ",
+      "BRANCH_READ",
+      "PROFILE_READ",
+      "PROFILE_UPDATE",
+      "PLAFOND_READ",
+      "PLAFOND_SELECT"
+    ]
   },
   "timestamp": "2025-12-22T10:00:00"
 }

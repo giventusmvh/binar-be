@@ -41,17 +41,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/branches/**").permitAll()
                         .requestMatchers("/error").permitAll()
 
-                        // Customer endpoints
-                        .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/loans/**").hasRole("CUSTOMER")
-
-                        // Approval endpoints - internal users only
-                        .requestMatchers("/api/approval/**").hasAnyRole("MARKETING", "BRANCH_MANAGER", "BACKOFFICE")
-
-                        // Admin endpoints - superadmin only
+                        // Admin endpoints - superadmin only (kept for safety)
                         .requestMatchers("/api/admin/**").hasRole("SUPERADMIN")
 
                         // All other requests require authentication
+                        // Permission-based access control is handled by @PreAuthorize
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

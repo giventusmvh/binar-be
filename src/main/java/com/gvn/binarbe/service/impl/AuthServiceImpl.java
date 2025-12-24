@@ -155,6 +155,11 @@ public class AuthServiceImpl implements AuthService {
                                 .roles(user.getRoles().stream()
                                                 .map(role -> role.getName().name())
                                                 .collect(Collectors.toList()))
+                                .permissions(user.getRoles().stream()
+                                                .flatMap(role -> role.getPermissions().stream())
+                                                .map(permission -> permission.getCode())
+                                                .distinct()
+                                                .collect(Collectors.toList()))
                                 .build();
         }
 }

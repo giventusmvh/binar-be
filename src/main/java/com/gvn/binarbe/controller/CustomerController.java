@@ -14,6 +14,7 @@ import com.gvn.binarbe.util.ResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.List;
  * Controller for customer operations.
  * Handles profile management, plafond selection, and browsing
  * products/branches.
+ * Access controlled by permissions assigned to roles.
  */
 @RestController
 @RequiredArgsConstructor
@@ -35,9 +37,10 @@ public class CustomerController {
     /**
      * Get current customer profile.
      * GET /api/customer/profile
-     * Requires CUSTOMER role.
+     * Requires PROFILE_READ permission.
      */
     @GetMapping("/api/customer/profile")
+    @PreAuthorize("hasAuthority('PROFILE_READ')")
     public ResponseEntity<ApiResponse<UserResponse>> getProfile(
             @AuthenticationPrincipal UserDetails userDetails) {
         UserResponse response = customerService.getProfile(userDetails.getUsername());
@@ -47,9 +50,10 @@ public class CustomerController {
     /**
      * Update customer profile.
      * PUT /api/customer/profile
-     * Requires CUSTOMER role.
+     * Requires PROFILE_UPDATE permission.
      */
     @PutMapping("/api/customer/profile")
+    @PreAuthorize("hasAuthority('PROFILE_UPDATE')")
     public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody UpdateProfileRequest request) {
@@ -60,9 +64,10 @@ public class CustomerController {
     /**
      * Select a plafond/credit limit.
      * POST /api/customer/plafond
-     * Requires CUSTOMER role.
+     * Requires PLAFOND_SELECT permission.
      */
     @PostMapping("/api/customer/plafond")
+    @PreAuthorize("hasAuthority('PLAFOND_SELECT')")
     public ResponseEntity<ApiResponse<UserPlafondResponse>> selectPlafond(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody SelectPlafondRequest request) {
@@ -73,9 +78,10 @@ public class CustomerController {
     /**
      * Get current customer's active plafond.
      * GET /api/customer/plafond
-     * Requires CUSTOMER role.
+     * Requires PLAFOND_READ permission.
      */
     @GetMapping("/api/customer/plafond")
+    @PreAuthorize("hasAuthority('PLAFOND_READ')")
     public ResponseEntity<ApiResponse<UserPlafondResponse>> getMyPlafond(
             @AuthenticationPrincipal UserDetails userDetails) {
         UserPlafondResponse response = plafondService.getMyPlafond(userDetails.getUsername());
