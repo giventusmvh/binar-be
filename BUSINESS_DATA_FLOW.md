@@ -136,15 +136,18 @@ Step 3: SELECT PLAFOND
 │  Select     │ ─── POST /api/customer/plafond
 │  Plafond    │     • Choose product (BRONZE/SILVER/GOLD/PLATINUM)
 └──────┬──────┘     • Sets credit limit (amount, tenor, rate)
+       │            • remainingAmount = product.amount
        │
        │  ⚠️ RULES:
        │  • Only 1 active plafond per customer
-       │  • Cannot be changed once selected
+       │  • remainingAmount decreases on loan approval
+       │  • Plafond becomes inactive when remainingAmount <= 0
+       │  • Can select new plafond after old one is inactive
        ▼
 Step 4: SUBMIT LOAN
 ┌─────────────┐
 │  Submit     │ ─── POST /api/loans
-│  Loan       │     • amount (≤ plafond amount)
+│  Loan       │     • amount (≤ plafond remainingAmount)
 └──────┬──────┘     • tenor (≤ plafond tenor)
        │            • interestRate (≥ plafond rate)
        │            • branchId (processing branch)
@@ -297,9 +300,10 @@ if (role == RoleName.BACKOFFICE) {
                         │    │ id (PK)          │    ┌───►│ id (PK)          │
                         │    │ user_id (FK) ────┼─1:1│    │ name             │
                         │    │ product_id (FK)──┼────┘    │ amount           │
-                        │    │ assigned_at      │         │ tenor            │
-                        │    │ is_active        │         │ interest_rate    │
-                        │    └──────────────────┘         └──────────────────┘
+                        │    │ remaining_amount │         │ tenor            │
+                        │    │ assigned_at      │         │ interest_rate    │
+                        │    │ is_active        │         └──────────────────┘
+                        │    └──────────────────┘
                         │
                         │    ┌──────────────────────────────────────────────────┐
                         │    │                 LOAN_APPLICATION                  │
@@ -453,8 +457,10 @@ The system uses **snapshot** data to preserve information at the time of action:
 │  PLAFOND RULES                                                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  ✅ One active plafond per customer                                         │
-│  ✅ Cannot change once selected                                             │
-│  ✅ Plafond determines max loan limits                                      │
+│  ✅ remainingAmount = product.amount initially                              │
+│  ✅ remainingAmount decreases when loan is APPROVED (final)                 │
+│  ✅ Plafond becomes inactive when remainingAmount <= 0                      │
+│  ✅ Can select new plafond after old one is inactive                        │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -469,7 +475,7 @@ The system uses **snapshot** data to preserve information at the time of action:
 │  ✅ Must have active plafond                                                │
 │                                                                             │
 │  Amount validation:                                                         │
-│  ✅ requested_amount ≤ plafond.product.amount                               │
+│  ✅ requested_amount ≤ plafond.remainingAmount                              │
 │                                                                             │
 │  Tenor validation:                                                          │
 │  ✅ requested_tenor ≤ plafond.product.tenor                                 │

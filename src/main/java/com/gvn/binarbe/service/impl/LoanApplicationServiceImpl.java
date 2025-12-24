@@ -60,10 +60,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
                 Product product = userPlafond.getProduct();
 
-                // Validate requested amount against plafond limit
-                if (request.getAmount().compareTo(product.getAmount()) > 0) {
+                // Validate requested amount against remaining plafond
+                if (request.getAmount().compareTo(userPlafond.getRemainingAmount()) > 0) {
                         throw BusinessException.badRequest(
-                                        "Requested amount exceeds plafond limit. Maximum: Rp " + product.getAmount());
+                                        "Requested amount exceeds remaining plafond. Remaining: Rp "
+                                                        + userPlafond.getRemainingAmount());
                 }
 
                 // Validate requested tenor against plafond limit

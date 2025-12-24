@@ -10,6 +10,7 @@ import com.gvn.binarbe.enums.RoleName;
 import com.gvn.binarbe.exception.BusinessException;
 import com.gvn.binarbe.repository.LoanApplicationHistoryRepository;
 import com.gvn.binarbe.repository.LoanApplicationRepository;
+import com.gvn.binarbe.repository.UserPlafondRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.service.ApprovalService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     private final UserRepository userRepository;
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanApplicationHistoryRepository historyRepository;
+    private final UserPlafondRepository userPlafondRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -79,6 +81,25 @@ public class ApprovalServiceImpl implements ApprovalService {
         // Update loan status
         loan.setStatus(newStatus);
         loan = loanApplicationRepository.save(loan);
+
+        // Deduct remaining amount from plafond when loan is finally approved
+        if (newStatus == LoanStatus.APPROVED) {
+            UserPlafond userPlafond = userPlafondRepository
+                    .findByUserIdWithProduct(loan.getCustomer().getId())
+                    .orElseThrow(() -> BusinessException.notFound("Plafond not found"));
+
+            java.math.BigDecimal newRemaining = userPlafond.getRemainingAmount()
+                    .subtract(loan.getRequestedAmount());
+            userPlafond.setRemainingAmount(newRemaining);
+
+            // Set plafond inactive if remaining amount is depleted
+            if (newRemaining.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                userPlafond.setIsActive(false);
+                log.info("Plafond for customer {} is now inactive (remaining amount depleted)",
+                        loan.getCustomer().getEmail());
+            }
+            userPlafondRepository.save(userPlafond);
+        }
 
         // Create history entry
         createHistoryEntry(loan, approver, role, newStatus, request.getNote());

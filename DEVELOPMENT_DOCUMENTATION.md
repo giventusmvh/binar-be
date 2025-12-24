@@ -318,8 +318,10 @@ public class UserPlafond {
     @ManyToOne
     private Product product;     // Selected product as credit limit
 
+    private BigDecimal remainingAmount;  // Remaining credit limit (decreases on loan approval)
+
     private LocalDateTime assignedAt;
-    private Boolean isActive;
+    private Boolean isActive;    // Auto-set to false when remainingAmount <= 0
 }
 ```
 
@@ -397,18 +399,18 @@ List<LoanApplicationHistory> findByLoanApplicationIdWithApprover(
 
 ### Response DTOs (9 classes)
 
-| DTO                     | Purpose                   |
-| ----------------------- | ------------------------- |
-| AuthResponse            | JWT token + user info     |
-| UserResponse            | User details + roles      |
-| UserProfileResponse     | Profile + isComplete flag |
-| UserPlafondResponse     | Plafond + product details |
-| ProductResponse         | Product details           |
-| BranchResponse          | Branch details            |
-| RoleResponse            | Role + permissions        |
-| PermissionResponse      | Permission details        |
-| LoanApplicationResponse | Loan + requested values   |
-| LoanHistoryResponse     | Approval history entry    |
+| DTO                     | Purpose                                    |
+| ----------------------- | ------------------------------------------ |
+| AuthResponse            | JWT token + user info                      |
+| UserResponse            | User details + roles                       |
+| UserProfileResponse     | Profile + isComplete flag                  |
+| UserPlafondResponse     | Plafond + originalAmount + remainingAmount |
+| ProductResponse         | Product details                            |
+| BranchResponse          | Branch details                             |
+| RoleResponse            | Role + permissions                         |
+| PermissionResponse      | Permission details                         |
+| LoanApplicationResponse | Loan + requested values                    |
+| LoanHistoryResponse     | Approval history entry                     |
 
 ---
 
@@ -575,7 +577,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         // 1. Get customer
         // 2. Validate profile is COMPLETE (NIK, birthdate, phone, address)
         // 3. Get user's active plafond
-        // 4. Validate amount <= plafond.amount
+        // 4. Validate amount <= plafond.remainingAmount (not product.amount)
         // 5. Validate tenor <= plafond.tenor
         // 6. Validate rate >= plafond.rate
         // 7. Create LoanApplication with requested values
@@ -615,8 +617,10 @@ public class ApprovalServiceImpl implements ApprovalService {
         //    BRANCH_MANAGER -> BRANCH_MANAGER_APPROVED
         //    BACKOFFICE -> APPROVED
         // 5. Update loan status
-        // 6. Create history entry with snapshot data
-        // 7. Return response
+        // 6. If APPROVED (final): deduct remainingAmount from plafond
+        //    - If remainingAmount <= 0: set plafond.isActive = false
+        // 7. Create history entry with snapshot data
+        // 8. Return response
     }
 }
 ```

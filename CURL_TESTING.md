@@ -303,7 +303,7 @@ curl -X POST "$BASE_URL/api/customer/plafond" \
   }'
 
 # Response: 200 OK
-# {"success": true, "data": {"product": {"name": "BRONZE", "amount": 5000000}}}
+# {"success": true, "data": {"product": {"name": "BRONZE", "amount": 5000000}, "originalAmount": 5000000, "remainingAmount": 5000000, "isActive": true}}
 ```
 
 ```bash
@@ -416,8 +416,8 @@ curl -X POST "$BASE_URL/api/loans" \
 ```
 
 ```bash
-# ❌ Error - Amount exceeds plafond limit
-# (BRONZE plafond max 5M, requesting 10M)
+# ❌ Error - Amount exceeds remaining plafond
+# (BRONZE plafond remainingAmount 5M, requesting 10M)
 curl -X POST "$BASE_URL/api/loans" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN" \
@@ -429,7 +429,7 @@ curl -X POST "$BASE_URL/api/loans" \
   }'
 
 # Response: 400 Bad Request
-# {"success": false, "message": "Requested amount exceeds plafond limit. Maximum: Rp 5000000"}
+# {"success": false, "message": "Requested amount exceeds remaining plafond. Remaining: Rp 5000000"}
 ```
 
 ```bash

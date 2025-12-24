@@ -398,6 +398,8 @@ if (pm.response.code === 201) {
       "tenor": 12,
       "interestRate": 12.0
     },
+    "originalAmount": 5000000,
+    "remainingAmount": 5000000,
     "assignedAt": "2025-12-23T21:55:00",
     "isActive": true
   },
@@ -435,6 +437,8 @@ if (pm.response.code === 201) {
       "tenor": 12,
       "interestRate": 12.0
     },
+    "originalAmount": 5000000,
+    "remainingAmount": 5000000,
     "assignedAt": "2025-12-23T21:55:00",
     "isActive": true
   },
@@ -467,7 +471,7 @@ if (pm.response.code === 201) {
 
 > **Validation Rules:**
 >
-> - `amount` must be ≤ plafond product amount
+> - `amount` must be ≤ plafond **remainingAmount** (not product.amount)
 > - `tenor` must be ≤ plafond product tenor
 > - `interestRate` must be ≥ plafond product interest rate
 
@@ -529,7 +533,7 @@ if (pm.response.code === 201) {
 // Error Response - Amount exceeds limit (400)
 {
   "success": false,
-  "message": "Requested amount exceeds plafond limit. Maximum: Rp 5000000",
+  "message": "Requested amount exceeds remaining plafond. Remaining: Rp 5000000",
   "timestamp": "2025-12-23T22:00:00"
 }
 ```

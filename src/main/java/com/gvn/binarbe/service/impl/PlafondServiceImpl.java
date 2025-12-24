@@ -24,81 +24,84 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PlafondServiceImpl implements PlafondService {
 
-    private final UserRepository userRepository;
-    private final ProductRepository productRepository;
-    private final UserPlafondRepository userPlafondRepository;
+        private final UserRepository userRepository;
+        private final ProductRepository productRepository;
+        private final UserPlafondRepository userPlafondRepository;
 
-    @Override
-    @Transactional
-    public UserPlafondResponse selectPlafond(String email, SelectPlafondRequest request) {
-        log.info("Selecting plafond for user: {}", email);
+        @Override
+        @Transactional
+        public UserPlafondResponse selectPlafond(String email, SelectPlafondRequest request) {
+                log.info("Selecting plafond for user: {}", email);
 
-        // Get user
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> BusinessException.notFound("User not found"));
+                // Get user
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> BusinessException.notFound("User not found"));
 
-        // Check if user already has an active plafond
-        if (userPlafondRepository.existsByUserIdAndIsActiveTrue(user.getId())) {
-            throw BusinessException.badRequest(
-                    "You already have an active plafond. Cannot select another one.");
+                // Check if user already has an active plafond
+                if (userPlafondRepository.existsByUserIdAndIsActiveTrue(user.getId())) {
+                        throw BusinessException.badRequest(
+                                        "You already have an active plafond. Cannot select another one.");
+                }
+
+                // Get product
+                Product product = productRepository.findById(request.getProductId())
+                                .orElseThrow(() -> BusinessException.notFound("Product not found"));
+
+                // Create user plafond with initial remaining amount
+                UserPlafond userPlafond = UserPlafond.builder()
+                                .user(user)
+                                .product(product)
+                                .remainingAmount(product.getAmount())
+                                .isActive(true)
+                                .build();
+
+                userPlafond = userPlafondRepository.save(userPlafond);
+
+                log.info("Plafond selected: User={}, Product={}", email, product.getName());
+
+                return mapToResponse(userPlafond);
         }
 
-        // Get product
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> BusinessException.notFound("Product not found"));
+        @Override
+        @Transactional(readOnly = true)
+        public UserPlafondResponse getMyPlafond(String email) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> BusinessException.notFound("User not found"));
 
-        // Create user plafond
-        UserPlafond userPlafond = UserPlafond.builder()
-                .user(user)
-                .product(product)
-                .isActive(true)
-                .build();
+                UserPlafond userPlafond = userPlafondRepository.findByUserIdWithProduct(user.getId())
+                                .orElseThrow(() -> BusinessException.notFound(
+                                                "You don't have an active plafond. Please select a plafond first."));
 
-        userPlafond = userPlafondRepository.save(userPlafond);
+                return mapToResponse(userPlafond);
+        }
 
-        log.info("Plafond selected: User={}, Product={}", email, product.getName());
+        @Override
+        @Transactional(readOnly = true)
+        public boolean hasActivePlafond(String email) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> BusinessException.notFound("User not found"));
 
-        return mapToResponse(userPlafond);
-    }
+                return userPlafondRepository.existsByUserIdAndIsActiveTrue(user.getId());
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public UserPlafondResponse getMyPlafond(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> BusinessException.notFound("User not found"));
+        private UserPlafondResponse mapToResponse(UserPlafond userPlafond) {
+                return UserPlafondResponse.builder()
+                                .id(userPlafond.getId())
+                                .product(mapToProductResponse(userPlafond.getProduct()))
+                                .originalAmount(userPlafond.getProduct().getAmount())
+                                .remainingAmount(userPlafond.getRemainingAmount())
+                                .assignedAt(userPlafond.getAssignedAt())
+                                .isActive(userPlafond.getIsActive())
+                                .build();
+        }
 
-        UserPlafond userPlafond = userPlafondRepository.findByUserIdWithProduct(user.getId())
-                .orElseThrow(() -> BusinessException.notFound(
-                        "You don't have an active plafond. Please select a plafond first."));
-
-        return mapToResponse(userPlafond);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean hasActivePlafond(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> BusinessException.notFound("User not found"));
-
-        return userPlafondRepository.existsByUserIdAndIsActiveTrue(user.getId());
-    }
-
-    private UserPlafondResponse mapToResponse(UserPlafond userPlafond) {
-        return UserPlafondResponse.builder()
-                .id(userPlafond.getId())
-                .product(mapToProductResponse(userPlafond.getProduct()))
-                .assignedAt(userPlafond.getAssignedAt())
-                .isActive(userPlafond.getIsActive())
-                .build();
-    }
-
-    private ProductResponse mapToProductResponse(Product product) {
-        return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .amount(product.getAmount())
-                .tenor(product.getTenor())
-                .interestRate(product.getInterestRate())
-                .build();
-    }
+        private ProductResponse mapToProductResponse(Product product) {
+                return ProductResponse.builder()
+                                .id(product.getId())
+                                .name(product.getName())
+                                .amount(product.getAmount())
+                                .tenor(product.getTenor())
+                                .interestRate(product.getInterestRate())
+                                .build();
+        }
 }

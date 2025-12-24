@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -18,6 +19,8 @@ public class UserPlafondResponse {
 
     private Long id;
     private ProductResponse product;
+    private BigDecimal originalAmount;
+    private BigDecimal remainingAmount;
     private LocalDateTime assignedAt;
     private Boolean isActive;
 }

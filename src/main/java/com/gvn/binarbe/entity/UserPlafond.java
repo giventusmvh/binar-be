@@ -33,6 +33,9 @@ public class UserPlafond implements Serializable {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @Column(name = "remaining_amount", nullable = false, precision = 15, scale = 2)
+    private java.math.BigDecimal remainingAmount;
+
     @Column(name = "assigned_at", nullable = false)
     @Builder.Default
     private LocalDateTime assignedAt = LocalDateTime.now();
