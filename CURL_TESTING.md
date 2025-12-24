@@ -366,7 +366,19 @@ curl -X POST "$BASE_URL/api/loans" \
   }'
 
 # Response: 201 Created
-# {"success": true, "data": {"id": 1, "status": "SUBMITTED"}}
+# {
+#   "success": true,
+#   "data": {
+#     "id": 1,
+#     "customerName": "John Doe",           // snapshot
+#     "customerEmail": "john.doe@email.com", // snapshot
+#     "customerNik": "3201234567890001",     // snapshot
+#     "customerPhone": "+6281234567890",     // snapshot
+#     "customerAddress": "Jl. Sudirman...",  // snapshot
+#     "customerBirthdate": "1990-05-15",     // snapshot
+#     "status": "SUBMITTED"
+#   }
+# }
 ```
 
 ```bash

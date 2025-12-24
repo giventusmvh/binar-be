@@ -4,6 +4,7 @@ import com.gvn.binarbe.enums.LoanStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 /**
  * LoanApplication entity representing customer loan requests.
  * Tracks status through multi-level approval workflow.
+ * Contains snapshot of customer data at time of submission.
  */
 @Entity
 @Table(name = "loan_applications")
@@ -45,6 +47,30 @@ public class LoanApplication {
 
     @Column(name = "requested_rate", nullable = false, precision = 5, scale = 2)
     private java.math.BigDecimal requestedRate; // percentage per annum
+
+    // ==========================================
+    // CUSTOMER SNAPSHOT (preserved at submission)
+    // ==========================================
+
+    @Column(name = "customer_name_snapshot", nullable = false)
+    private String customerNameSnapshot;
+
+    @Column(name = "customer_email_snapshot", nullable = false)
+    private String customerEmailSnapshot;
+
+    @Column(name = "customer_nik_snapshot", length = 16)
+    private String customerNikSnapshot;
+
+    @Column(name = "customer_phone_snapshot")
+    private String customerPhoneSnapshot;
+
+    @Column(name = "customer_address_snapshot", columnDefinition = "TEXT")
+    private String customerAddressSnapshot;
+
+    @Column(name = "customer_birthdate_snapshot")
+    private LocalDate customerBirthdateSnapshot;
+
+    // ==========================================
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

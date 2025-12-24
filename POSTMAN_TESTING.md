@@ -490,6 +490,10 @@ if (pm.response.code === 201) {
     "id": 1,
     "customerName": "John Doe",
     "customerEmail": "john.doe@email.com",
+    "customerNik": "3201234567890001",
+    "customerPhone": "+6281234567890",
+    "customerAddress": "Jl. Sudirman No. 123, Jakarta",
+    "customerBirthdate": "1990-05-15",
     "product": {
       "id": 1,
       "name": "BRONZE",

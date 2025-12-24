@@ -311,6 +311,12 @@ if (role == RoleName.BACKOFFICE) {
                              │ requested_amount                                 │
                              │ requested_tenor                                  │
                              │ requested_rate                                   │
+                             │ customer_name_snapshot    ─┐                     │
+                             │ customer_email_snapshot    │                     │
+                             │ customer_nik_snapshot      ├─ CUSTOMER SNAPSHOT  │
+                             │ customer_phone_snapshot    │  (preserved at      │
+                             │ customer_address_snapshot  │   submission time)  │
+                             │ customer_birthdate_snapshot┘                     │
                              │ status (enum)                                    │
                              │ created_at, updated_at                           │
                              └─────────────────────┬────────────────────────────┘
@@ -333,11 +339,22 @@ if (role == RoleName.BACKOFFICE) {
 
 ### Snapshot Fields Explanation
 
-History table menyimpan **snapshot** data saat action terjadi:
+The system uses **snapshot** data to preserve information at the time of action:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  WHY SNAPSHOT?                                                               │
+│  WHY CUSTOMER SNAPSHOT?                                                      │
+│                                                                             │
+│  Customer profile can change over time. If John Doe submits a loan with    │
+│  address "Jl. Sudirman", then moves to "Jl. Thamrin", the loan should      │
+│  still show:                                                                │
+│                                                                             │
+│  ✅ customer_address_snapshot = "Jl. Sudirman" (address at submission)     │
+│  ❌ NOT current address = "Jl. Thamrin"                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  WHY APPROVER SNAPSHOT?                                                      │
 │                                                                             │
 │  User roles can change over time. If Marketing "A" approves a loan,        │
 │  then gets promoted to Branch_Manager, history should still show:          │

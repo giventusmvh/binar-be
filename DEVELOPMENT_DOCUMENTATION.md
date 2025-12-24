@@ -287,6 +287,14 @@ public class LoanApplication {
     private Integer requestedTenor;
     private BigDecimal requestedRate;
 
+    // Customer snapshot (preserved at submission time)
+    private String customerNameSnapshot;
+    private String customerEmailSnapshot;
+    private String customerNikSnapshot;
+    private String customerPhoneSnapshot;
+    private String customerAddressSnapshot;
+    private LocalDate customerBirthdateSnapshot;
+
     @Enumerated(EnumType.STRING)
     private LoanStatus status;
 

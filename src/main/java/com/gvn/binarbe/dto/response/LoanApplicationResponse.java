@@ -7,10 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
  * Response DTO for loan application details.
+ * Customer data is snapshot data from submission time.
  */
 @Data
 @Builder
@@ -19,8 +21,15 @@ import java.time.LocalDateTime;
 public class LoanApplicationResponse {
 
     private Long id;
+
+    // Customer snapshot data (preserved from submission time)
     private String customerName;
     private String customerEmail;
+    private String customerNik;
+    private String customerPhone;
+    private String customerAddress;
+    private LocalDate customerBirthdate;
+
     private ProductResponse product; // The plafond/product used
     private BranchResponse branch;
     private BigDecimal requestedAmount;

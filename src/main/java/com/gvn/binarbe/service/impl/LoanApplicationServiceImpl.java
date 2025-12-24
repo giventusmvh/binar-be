@@ -84,7 +84,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 Branch branch = branchRepository.findById(request.getBranchId())
                                 .orElseThrow(() -> BusinessException.notFound("Branch not found"));
 
-                // Create loan application with requested values
+                // Create loan application with requested values and customer snapshot
                 LoanApplication loanApplication = LoanApplication.builder()
                                 .customer(customer)
                                 .product(product)
@@ -92,6 +92,13 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                                 .requestedAmount(request.getAmount())
                                 .requestedTenor(request.getTenor())
                                 .requestedRate(request.getInterestRate())
+                                // Snapshot customer data at submission time
+                                .customerNameSnapshot(customer.getName())
+                                .customerEmailSnapshot(customer.getEmail())
+                                .customerNikSnapshot(profile.getNik())
+                                .customerPhoneSnapshot(profile.getPhone())
+                                .customerAddressSnapshot(profile.getAddress())
+                                .customerBirthdateSnapshot(profile.getBirthdate())
                                 .status(LoanStatus.SUBMITTED)
                                 .build();
 
@@ -163,8 +170,13 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         private LoanApplicationResponse mapToLoanResponse(LoanApplication loan) {
                 return LoanApplicationResponse.builder()
                                 .id(loan.getId())
-                                .customerName(loan.getCustomer().getName())
-                                .customerEmail(loan.getCustomer().getEmail())
+                                // Use snapshot data (preserved from submission time)
+                                .customerName(loan.getCustomerNameSnapshot())
+                                .customerEmail(loan.getCustomerEmailSnapshot())
+                                .customerNik(loan.getCustomerNikSnapshot())
+                                .customerPhone(loan.getCustomerPhoneSnapshot())
+                                .customerAddress(loan.getCustomerAddressSnapshot())
+                                .customerBirthdate(loan.getCustomerBirthdateSnapshot())
                                 .product(mapToProductResponse(loan.getProduct()))
                                 .branch(mapToBranchResponse(loan.getBranch()))
                                 .requestedAmount(loan.getRequestedAmount())
