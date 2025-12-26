@@ -718,35 +718,6 @@ curl -X POST "$BASE_URL/api/approval/1/reject" \
 # {"success": true, "data": {"status": "MARKETING_REJECTED"}}
 ```
 
-### 5.6 Return Loan (Backoffice Only)
-
-```bash
-# ✅ Success - Backoffice returns loan for revision
-curl -X POST "$BASE_URL/api/approval/1/return" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $BACKOFFICE_TOKEN" \
-  -d '{
-    "note": "Please verify customer address again"
-  }'
-
-# Response: 200 OK
-# {"success": true, "data": {"status": "RETURNED"}}
-# Loan goes back to Marketing for re-review
-```
-
-```bash
-# ❌ Error - Non-backoffice tries to return
-curl -X POST "$BASE_URL/api/approval/1/return" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $MARKETING_TOKEN" \
-  -d '{
-    "note": "Cannot return"
-  }'
-
-# Response: 403 Forbidden
-# {"success": false, "message": "Only Backoffice can return loan applications"}
-```
-
 ---
 
 ## 6. SuperAdmin Operations

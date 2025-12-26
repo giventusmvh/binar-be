@@ -541,13 +541,6 @@ export class ApprovalService {
       { note }
     );
   }
-
-  returnLoan(id: number, note: string): Observable<ApiResponse<Loan>> {
-    return this.http.post<ApiResponse<Loan>>(
-      `${environment.apiUrl}/approval/${id}/return`,
-      { note }
-    );
-  }
 }
 ```
 
@@ -791,15 +784,6 @@ import { AuthService } from "../../core/services/auth.service";
           >
             ✗ Reject
           </button>
-          @if (authService.isBackoffice()) {
-          <button
-            class="btn-warning"
-            (click)="returnLoan()"
-            [disabled]="processing() || !note"
-          >
-            ↩ Return for Revision
-          </button>
-          }
         </div>
       </section>
       } }
@@ -876,25 +860,6 @@ export class LoanDetailComponent implements OnInit {
       error: (err) => {
         this.processing.set(false);
         alert(err.error?.message || "Failed to reject");
-      },
-    });
-  }
-
-  returnLoan(): void {
-    if (!this.note) {
-      alert("Please add a note for return");
-      return;
-    }
-
-    this.processing.set(true);
-    this.approvalService.returnLoan(this.loan()!.id, this.note).subscribe({
-      next: () => {
-        alert("Loan returned for revision");
-        this.router.navigate(["/approvals"]);
-      },
-      error: (err) => {
-        this.processing.set(false);
-        alert(err.error?.message || "Failed to return");
       },
     });
   }
@@ -1227,8 +1192,7 @@ export type LoanStatus =
   | "BRANCH_MANAGER_APPROVED"
   | "BRANCH_MANAGER_REJECTED"
   | "APPROVED"
-  | "REJECTED"
-  | "RETURNED";
+  | "REJECTED";
 
 // Reference Data
 export interface Product {

@@ -549,7 +549,6 @@ fun LoanStatusTimeline(history: List<LoanHistoryResponse>) {
 fun getStatusColor(status: String): Color = when {
     status.contains("APPROVED") -> Color.Green
     status.contains("REJECTED") -> Color.Red
-    status == "RETURNED" -> Color.Yellow
     else -> Color.Blue
 }
 ```
@@ -800,7 +799,6 @@ interface LoanDao {
 | `MARKETING_REJECTED`      | Rejected by Marketing            | Red      |
 | `BRANCH_MANAGER_REJECTED` | Rejected by Branch Manager       | Red      |
 | `REJECTED`                | Final rejection                  | Red      |
-| `RETURNED`                | Returned for revision            | Yellow   |
 
 ---
 

@@ -37,14 +37,4 @@ public interface ApprovalService {
      * @return updated loan application
      */
     LoanApplicationResponse reject(String email, Long loanId, ApprovalRequest request);
-
-    /**
-     * Return a loan application for revision (Backoffice only).
-     *
-     * @param email   approver email
-     * @param loanId  loan application ID
-     * @param request return data
-     * @return updated loan application
-     */
-    LoanApplicationResponse returnLoan(String email, Long loanId, ApprovalRequest request);
 }

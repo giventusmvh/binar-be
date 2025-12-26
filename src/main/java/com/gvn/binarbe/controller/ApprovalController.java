@@ -78,21 +78,4 @@ public class ApprovalController {
                 userDetails.getUsername(), id, request);
         return ResponseUtil.ok("Loan rejected", response);
     }
-
-    /**
-     * Return a loan application for revision.
-     * POST /api/approval/{id}/return
-     * Sends loan back to marketing stage.
-     * Requires LOAN_RETURN permission.
-     */
-    @PostMapping("/{id}/return")
-    @PreAuthorize("hasAuthority('LOAN_RETURN')")
-    public ResponseEntity<ApiResponse<LoanApplicationResponse>> returnLoan(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id,
-            @Valid @RequestBody ApprovalRequest request) {
-        LoanApplicationResponse response = approvalService.returnLoan(
-                userDetails.getUsername(), id, request);
-        return ResponseUtil.ok("Loan returned for revision", response);
-    }
 }

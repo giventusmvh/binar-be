@@ -691,11 +691,6 @@ if (pm.response.code === 201) {
 ┌──────────────────┐ ┌──────────────────┐    ┌──────────────────────────┐            │
 │ MARKETING_REJECTED│ │ BM_REJECTED     │    │ REJECTED                 │◀───────────┘
 └──────────────────┘ └──────────────────┘    └──────────────────────────┘
-                                                        │
-                                              ┌─────────▼─────────┐
-                                              │     RETURNED      │
-                                              │ (back to SUBMITTED)│
-                                              └───────────────────┘
 ```
 
 ---
@@ -812,34 +807,6 @@ if (pm.response.code === 201) {
   "data": {
     "id": 1,
     "status": "MARKETING_REJECTED",
-    ...
-  },
-  "timestamp": "2025-12-22T10:00:00"
-}
-```
-
----
-
-### 5.4 Return Loan (Backoffice Only)
-
-**Endpoint:** `POST /api/approval/{id}/return`  
-**Auth:** Bearer Token (BACKOFFICE only)
-
-```json
-// Request Body (required)
-{
-  "note": "Please verify customer address again"
-}
-```
-
-```json
-// Success Response (200 OK)
-{
-  "success": true,
-  "message": "Loan returned for revision",
-  "data": {
-    "id": 1,
-    "status": "RETURNED",
     ...
   },
   "timestamp": "2025-12-22T10:00:00"
@@ -1093,12 +1060,7 @@ if (pm.response.code === 201) {
     {
       "id": 4,
       "name": "BACKOFFICE",
-      "permissions": [
-        "LOAN_READ_ALL",
-        "LOAN_APPROVE_BACKOFFICE",
-        "LOAN_REJECT",
-        "LOAN_RETURN"
-      ]
+      "permissions": ["LOAN_READ_ALL", "LOAN_APPROVE_BACKOFFICE", "LOAN_REJECT"]
     },
     {
       "id": 5,
@@ -1168,14 +1130,13 @@ if (pm.response.code === 201) {
     { "id": 10, "name": "LOAN_APPROVE_BRANCH_MANAGER" },
     { "id": 11, "name": "LOAN_APPROVE_BACKOFFICE" },
     { "id": 12, "name": "LOAN_REJECT" },
-    { "id": 13, "name": "LOAN_RETURN" },
-    { "id": 14, "name": "PRODUCT_READ" },
-    { "id": 15, "name": "BRANCH_READ" },
-    { "id": 16, "name": "ROLE_CREATE" },
-    { "id": 17, "name": "ROLE_READ" },
-    { "id": 18, "name": "ROLE_UPDATE" },
-    { "id": 19, "name": "ROLE_DELETE" },
-    { "id": 20, "name": "PERMISSION_READ" }
+    { "id": 13, "name": "PRODUCT_READ" },
+    { "id": 14, "name": "BRANCH_READ" },
+    { "id": 15, "name": "ROLE_CREATE" },
+    { "id": 16, "name": "ROLE_READ" },
+    { "id": 17, "name": "ROLE_UPDATE" },
+    { "id": 18, "name": "ROLE_DELETE" },
+    { "id": 19, "name": "PERMISSION_READ" }
   ],
   "timestamp": "2025-12-22T10:00:00"
 }
@@ -1257,7 +1218,6 @@ if (pm.response.code === 201) {
 | **Approval**                |                     |        |                                                     |
 | POST /approval/{id}/approve | Wrong status        | 400    | Loan is not in the correct status for your approval |
 | POST /approval/{id}/approve | Wrong branch        | 403    | You can only process loans from your branch         |
-| POST /approval/{id}/return  | Not backoffice      | 403    | Only Backoffice can return loan applications        |
 | **Admin**                   |                     |        |                                                     |
 | POST /admin/users           | Create customer     | 400    | Cannot create customer via admin endpoint           |
 | Any admin endpoint          | Not admin           | 403    | Access Denied                                       |

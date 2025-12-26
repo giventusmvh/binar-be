@@ -116,8 +116,6 @@ public class DataInitializer implements CommandLineRunner {
                                                 .build(),
                                 Permission.builder().code("LOAN_REJECT").description("Reject loan applications")
                                                 .build(),
-                                Permission.builder().code("LOAN_RETURN").description("Return loan for revision")
-                                                .build(),
 
                                 // Product permissions
                                 Permission.builder().code("PRODUCT_READ").description("Read products").build(),
@@ -166,7 +164,6 @@ public class DataInitializer implements CommandLineRunner {
                 Permission loanApproveBackoffice = permissionRepository.findByCode("LOAN_APPROVE_BACKOFFICE")
                                 .orElseThrow();
                 Permission loanReject = permissionRepository.findByCode("LOAN_REJECT").orElseThrow();
-                Permission loanReturn = permissionRepository.findByCode("LOAN_RETURN").orElseThrow();
                 Permission productRead = permissionRepository.findByCode("PRODUCT_READ").orElseThrow();
                 Permission productManage = permissionRepository.findByCode("PRODUCT_MANAGE").orElseThrow();
                 Permission branchRead = permissionRepository.findByCode("BRANCH_READ").orElseThrow();
@@ -202,7 +199,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 // BACKOFFICE - final approval across all branches
                 Set<Permission> backofficePerms = new HashSet<>(Arrays.asList(
-                                loanReadAll, loanApproveBackoffice, loanReject, loanReturn, productRead, branchRead));
+                                loanReadAll, loanApproveBackoffice, loanReject, productRead, branchRead));
                 Role backoffice = Role.builder()
                                 .name(RoleName.BACKOFFICE)
                                 .permissions(backofficePerms)

@@ -139,34 +139,6 @@ public class ApprovalServiceImpl implements ApprovalService {
         return mapToLoanResponse(loan);
     }
 
-    @Override
-    @Transactional
-    public LoanApplicationResponse returnLoan(String email, Long loanId, ApprovalRequest request) {
-        log.info("Returning loan {} by {}", loanId, email);
-
-        User approver = getApprover(email);
-        RoleName role = getHighestRole(approver);
-
-        // Only backoffice can return
-        if (role != RoleName.BACKOFFICE) {
-            throw BusinessException.forbidden("Only Backoffice can return loan applications");
-        }
-
-        LoanApplication loan = getLoanForApproval(loanId, approver, role);
-
-        // Update loan status to RETURNED (goes back to marketing)
-        loan.setStatus(LoanStatus.RETURNED);
-        loan = loanApplicationRepository.save(loan);
-
-        // Create history entry
-        String note = request.getNote() != null ? request.getNote() : "Loan application returned for revision";
-        createHistoryEntry(loan, approver, role, LoanStatus.RETURNED, note);
-
-        log.info("Loan {} returned for revision", loanId);
-
-        return mapToLoanResponse(loan);
-    }
-
     private User getApprover(String email) {
         return userRepository.findByEmailWithRoles(email)
                 .orElseThrow(() -> BusinessException.notFound("User not found"));
@@ -204,10 +176,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         // Check expected status
         LoanStatus expectedStatus = getExpectedStatus(role);
 
-        // For returned loans, marketing should be able to process them
-        if (role == RoleName.MARKETING && loan.getStatus() == LoanStatus.RETURNED) {
-            // Allow marketing to process returned loans
-        } else if (loan.getStatus() != expectedStatus) {
+        if (loan.getStatus() != expectedStatus) {
             throw BusinessException.badRequest("Loan is not in the correct status for your approval. " +
                     "Current status: " + loan.getStatus() + ", Expected: " + expectedStatus);
         }

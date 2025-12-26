@@ -1231,8 +1231,7 @@ public enum LoanStatus {
     BRANCH_MANAGER_APPROVED,      // Disetujui Branch Manager
     BRANCH_MANAGER_REJECTED,      // Ditolak Branch Manager
     APPROVED,                     // Final approval oleh Backoffice
-    REJECTED,                     // Final rejection
-    RETURNED                      // Dikembalikan untuk revisi
+    REJECTED                      // Final rejection
 }
 ```
 
@@ -1510,7 +1509,6 @@ Ini mencegah:
 3. REVIEW & ACTION
    POST /api/approval/{id}/approve → Move to next status
    POST /api/approval/{id}/reject → Terminal rejection
-   POST /api/approval/{id}/return → Back to SUBMITTED (Backoffice only)
 
 4. FINAL APPROVAL (Backoffice)
    → Status = APPROVED

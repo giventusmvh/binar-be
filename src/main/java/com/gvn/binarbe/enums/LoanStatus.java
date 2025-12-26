@@ -5,7 +5,7 @@ package com.gvn.binarbe.enums;
  * workflow.
  * 
  * Flow: SUBMITTED -> MARKETING_APPROVED -> BRANCH_MANAGER_APPROVED -> APPROVED
- * Any stage can result in REJECTED or RETURNED (by backoffice)
+ * Any stage can result in REJECTED
  */
 public enum LoanStatus {
     SUBMITTED, // Initial status when customer submits
@@ -14,6 +14,5 @@ public enum LoanStatus {
     BRANCH_MANAGER_APPROVED, // Approved by Branch Manager
     BRANCH_MANAGER_REJECTED, // Rejected by Branch Manager
     APPROVED, // Final approval by Backoffice
-    REJECTED, // Final rejection
-    RETURNED // Returned by Backoffice for revision
+    REJECTED // Final rejection
 }

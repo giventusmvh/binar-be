@@ -369,12 +369,12 @@ Authorization: Bearer <jwt_token>
 
 ### Role-Based Navigation
 
-| Role               | Dashboard Features                                                          |
-| ------------------ | --------------------------------------------------------------------------- |
-| **MARKETING**      | View & approve SUBMITTED loans (own branch)                                 |
-| **BRANCH_MANAGER** | View & approve MARKETING_APPROVED loans (own branch)                        |
-| **BACKOFFICE**     | View & approve BRANCH_MANAGER_APPROVED loans (all branches), Return feature |
-| **SUPERADMIN**     | User management, Role assignment, Permission management                     |
+| Role               | Dashboard Features                                          |
+| ------------------ | ----------------------------------------------------------- |
+| **MARKETING**      | View & approve SUBMITTED loans (own branch)                 |
+| **BRANCH_MANAGER** | View & approve MARKETING_APPROVED loans (own branch)        |
+| **BACKOFFICE**     | View & approve BRANCH_MANAGER_APPROVED loans (all branches) |
+| **SUPERADMIN**     | User management, Role assignment, Permission management     |
 
 ### 4.1 Approval Flow
 
@@ -433,17 +433,6 @@ SUBMITTED → MARKETING_APPROVED → BRANCH_MANAGER_APPROVED → APPROVED
 // Request
 { "note": "Insufficient documentation" }
 ```
-
-#### Return Loan (Backoffice Only)
-
-**Endpoint:** `POST /api/approval/{id}/return`
-
-```json
-// Request
-{ "note": "Please verify address again" }
-```
-
-Returns loan to `SUBMITTED` status for Marketing re-review.
 
 ---
 
@@ -519,7 +508,6 @@ Returns loan to `SUBMITTED` status for Marketing re-review.
 | `BRANCH_MANAGER_REJECTED` | Rejected by BM (terminal)                 |
 | `APPROVED`                | Final approval, loan disbursed (terminal) |
 | `REJECTED`                | Final rejection (terminal)                |
-| `RETURNED`                | Returned for revision, back to SUBMITTED  |
 
 ### Test Accounts
 

@@ -197,8 +197,7 @@ public enum LoanStatus {
     BRANCH_MANAGER_APPROVED,    // Level 2 approved
     BRANCH_MANAGER_REJECTED,    // Level 2 rejected
     APPROVED,                   // Final approved
-    REJECTED,                   // Final rejected
-    RETURNED                    // Sent back for revision
+    REJECTED                    // Final rejected
 }
 ```
 
@@ -655,7 +654,6 @@ APPROVAL ENDPOINTS (ROLE_MARKETING, ROLE_BRANCH_MANAGER, ROLE_BACKOFFICE):
 GET    /api/approval/pending      - Pending loans
 POST   /api/approval/{id}/approve - Approve loan
 POST   /api/approval/{id}/reject  - Reject loan
-POST   /api/approval/{id}/return  - Return (BACKOFFICE only)
 
 ADMIN ENDPOINTS (ROLE_SUPERADMIN):
 POST   /api/admin/users               - Create internal user (with role + branch)
@@ -734,7 +732,7 @@ public class DataInitializer implements CommandLineRunner {
 | SUPERADMIN | All permissions |
 | MARKETING | LOAN_READ_BRANCH, LOAN_APPROVE_MARKETING, LOAN_REJECT |
 | BRANCH_MANAGER | LOAN_READ_BRANCH, LOAN_APPROVE_BRANCH_MANAGER, LOAN_REJECT |
-| BACKOFFICE | LOAN_READ_ALL, LOAN_APPROVE_BACKOFFICE, LOAN_REJECT, LOAN_RETURN |
+| BACKOFFICE | LOAN_READ_ALL, LOAN_APPROVE_BACKOFFICE, LOAN_REJECT |
 | CUSTOMER | LOAN_CREATE, LOAN_READ, PRODUCT_READ, BRANCH_READ |
 
 **Internal Users:**
@@ -976,10 +974,6 @@ public ResponseEntity<...> getPendingLoans(...) { }
 @PostMapping("/{id}/approve")
 @PreAuthorize("hasAnyAuthority('LOAN_APPROVE_MARKETING', 'LOAN_APPROVE_BRANCH_MANAGER', 'LOAN_APPROVE_BACKOFFICE')")
 public ResponseEntity<...> approve(...) { }
-
-@PostMapping("/{id}/return")
-@PreAuthorize("hasAuthority('LOAN_RETURN')")
-public ResponseEntity<...> returnLoan(...) { }
 ```
 
 ### Login Response with Permissions
@@ -1017,7 +1011,6 @@ public ResponseEntity<...> returnLoan(...) { }
 | LOAN_APPROVE_BRANCH_MANAGER | Approve as Branch Manager  | BRANCH_MANAGER                        |
 | LOAN_APPROVE_BACKOFFICE     | Final approval             | BACKOFFICE                            |
 | LOAN_REJECT                 | Reject loans               | MARKETING, BRANCH_MANAGER, BACKOFFICE |
-| LOAN_RETURN                 | Return for revision        | BACKOFFICE                            |
 | PROFILE_READ                | Read own profile           | CUSTOMER                              |
 | PROFILE_UPDATE              | Update own profile         | CUSTOMER                              |
 | PLAFOND_READ                | Read own plafond           | CUSTOMER                              |
@@ -1050,7 +1043,6 @@ canActivate(route: ActivatedRouteSnapshot): boolean {
 
 ```html
 <button *ngIf="hasPermission('LOAN_APPROVE_MARKETING')">Approve</button>
-<button *ngIf="hasPermission('LOAN_RETURN')">Return</button>
 ```
 
 ---

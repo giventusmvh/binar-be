@@ -97,7 +97,7 @@ Binar Loan Application adalah sistem pengajuan pinjaman dengan fitur:
 | Role           | Can See            | Can Do                           |
 | -------------- | ------------------ | -------------------------------- |
 | SUPERADMIN     | All data           | Manage users, roles, permissions |
-| BACKOFFICE     | All branches loans | Final approve, reject, return    |
+| BACKOFFICE     | All branches loans | Final approve, reject            |
 | BRANCH_MANAGER | Own branch loans   | Level 2 approve, reject          |
 | MARKETING      | Own branch loans   | Level 1 approve, reject          |
 | CUSTOMER       | Own data only      | Submit loan, view status         |
@@ -224,27 +224,7 @@ public boolean isComplete() {
 │  Expected Status: BRANCH_MANAGER_APPROVED                                    │
 │  Actions: Approve → APPROVED (Final - Loan Disbursed)                        │
 │           Reject  → REJECTED (Terminal)                                      │
-│           Return  → RETURNED (Back to SUBMITTED, Marketing re-reviews)       │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Return Flow (Special Case)
-
-```
-                    BACKOFFICE returns loan
-                           │
-                           ▼
-              ┌────────────────────────┐
-              │       RETURNED         │
-              │  (Back to SUBMITTED)   │
-              └────────────┬───────────┘
-                           │
-                           │ Marketing re-reviews
-                           ▼
-              ┌────────────────────────┐
-              │    Back to Level 1     │
-              │      (Marketing)       │
-              └────────────────────────┘
 ```
 
 ### Branch Restriction Logic
@@ -427,7 +407,6 @@ The system uses **snapshot** data to preserve information at the time of action:
 | BRANCH_MANAGER_REJECTED | ✅        | None (Rejected)       |
 | APPROVED                | ✅        | None (Loan disbursed) |
 | REJECTED                | ✅        | None (Rejected)       |
-| RETURNED                | ❌        | Marketing re-review   |
 
 ---
 
@@ -495,17 +474,13 @@ The system uses **snapshot** data to preserve information at the time of action:
 │  APPROVAL BUSINESS RULES                                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  Status matching:                                                           │
-│  ✅ MARKETING can only process SUBMITTED or RETURNED loans                  │
+│  ✅ MARKETING can only process SUBMITTED loans                              │
 │  ✅ BRANCH_MANAGER can only process MARKETING_APPROVED loans                │
 │  ✅ BACKOFFICE can only process BRANCH_MANAGER_APPROVED loans               │
 │                                                                             │
 │  Branch restriction:                                                        │
 │  ✅ MARKETING & BRANCH_MANAGER can only see/process their branch            │
 │  ✅ BACKOFFICE can see/process ALL branches                                 │
-│                                                                             │
-│  Return feature:                                                            │
-│  ✅ Only BACKOFFICE can return loans                                        │
-│  ✅ RETURNED status goes back to SUBMITTED (Marketing re-reviews)           │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 

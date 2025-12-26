@@ -118,26 +118,24 @@ Customer submits loan
              │                                      │
     BACKOFFICE reviews (all branches)               │
              │                                      │
-      ┌──────┼──────┐                               │
-      │      │      │                               │
-      ▼      ▼      ▼                               │
-  APPROVE REJECT  RETURN                            │
-      │      │      │                               │
-      │      │      └──► RETURNED ──► Back to       │
-      │      │                        MARKETING     │
-      ▼      ▼                                      │
-┌──────────┐ └──────────────────────────────────────┘
-│ APPROVED │                                REJECTED
-└──────────┘
+        ┌────┴────┐                                 │
+        │         │                                 │
+        ▼         ▼                                 │
+    APPROVE    REJECT ──────────────────────────────┤
+        │                                           │
+        ▼                                           │
+┌──────────┐                                REJECTED│
+│ APPROVED │                                        │
+└──────────┘                                        │
 ```
 
 ### Approval Levels
 
-| Level | Role           | Scope             | Actions                               |
-| ----- | -------------- | ----------------- | ------------------------------------- |
-| 1     | MARKETING      | Branch-restricted | Approve → MARKETING_APPROVED          |
-| 2     | BRANCH_MANAGER | Branch-restricted | Approve → BRANCH_MANAGER_APPROVED     |
-| 3     | BACKOFFICE     | All branches      | Approve → APPROVED, Return → RETURNED |
+| Level | Role           | Scope             | Actions                           |
+| ----- | -------------- | ----------------- | --------------------------------- |
+| 1     | MARKETING      | Branch-restricted | Approve → MARKETING_APPROVED      |
+| 2     | BRANCH_MANAGER | Branch-restricted | Approve → BRANCH_MANAGER_APPROVED |
+| 3     | BACKOFFICE     | All branches      | Approve → APPROVED                |
 
 ## API Endpoints
 
@@ -170,12 +168,11 @@ Customer submits loan
 
 ### Approval (Requires MARKETING, BRANCH_MANAGER, or BACKOFFICE role)
 
-| Method | Endpoint                     | Description                   |
-| ------ | ---------------------------- | ----------------------------- |
-| GET    | `/api/approval/pending`      | Get pending loans             |
-| POST   | `/api/approval/{id}/approve` | Approve loan                  |
-| POST   | `/api/approval/{id}/reject`  | Reject loan                   |
-| POST   | `/api/approval/{id}/return`  | Return loan (BACKOFFICE only) |
+| Method | Endpoint                     | Description       |
+| ------ | ---------------------------- | ----------------- |
+| GET    | `/api/approval/pending`      | Get pending loans |
+| POST   | `/api/approval/{id}/approve` | Approve loan      |
+| POST   | `/api/approval/{id}/reject`  | Reject loan       |
 
 ### Admin (Requires SUPERADMIN role)
 
