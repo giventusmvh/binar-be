@@ -649,6 +649,107 @@ eyJyb2xlcyI6WyJDVVNUT01FUiJ...←Payload (claims)
 
 ---
 
+### 2.7 Flow: Password Reset & Logout (Redis Token Blacklist)
+
+**Alasan dibuat:**
+JWT tokens tidak bisa di-revoke setelah di-issue. Untuk security, kita perlu mekanisme untuk:
+
+1. Blacklist token saat logout
+2. Invalidate semua token user saat password reset
+
+**Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Redis Database                          │
+├─────────────────────────────────────────────────────────────┤
+│  blacklist:{token}        → "1" (TTL = remaining lifetime)  │
+│  password-changed:{email} → timestamp (TTL = jwt.expiration)│
+│  password-reset:{token}   → userId (TTL = 30 minutes)        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Service: TokenBlacklistService.java**
+
+```java
+public interface TokenBlacklistService {
+    boolean isTokenBlacklisted(String token, String email, long issuedAt);
+    void blacklistToken(String token, long ttlMillis);
+    void invalidateAllUserTokens(String email);
+}
+```
+
+**Implementasi: TokenBlacklistServiceImpl.java**
+
+```java
+@Service
+public class TokenBlacklistServiceImpl implements TokenBlacklistService {
+
+    @Override
+    public boolean isTokenBlacklisted(String token, String email, long issuedAt) {
+        // CHECK 1: Token ada di blacklist?
+        if (redisTemplate.hasKey("blacklist:" + token)) {
+            return true;
+        }
+
+        // CHECK 2: Password changed setelah token di-issue?
+        String changedTime = redisTemplate.opsForValue().get("password-changed:" + email);
+        if (changedTime != null && issuedAt < Long.parseLong(changedTime)) {
+            return true;  // Token issued sebelum password change
+        }
+
+        return false;
+    }
+}
+```
+
+**Flow: Logout**
+
+```
+User → POST /api/auth/logout
+     → AuthController.logout()
+     → TokenBlacklistService.blacklistToken(token, remainingTTL)
+     → Redis: SET blacklist:{token} "1" EX {remainingSeconds}
+     → Response: "Logged out successfully"
+```
+
+**Flow: Password Reset**
+
+```
+User → POST /api/auth/forgot-password
+     → Generate reset token
+     → Redis: SET password-reset:{token} {userId} EX 1800
+     → Send email with reset link
+
+User → POST /api/auth/reset-password
+     → Validate token from Redis
+     → Update password
+     → TokenBlacklistService.invalidateAllUserTokens(email)
+     → Redis: SET password-changed:{email} {timestamp} EX {jwtExpiration}
+     → All existing tokens untuk user ini sekarang INVALID
+```
+
+**JwtAuthenticationFilter Integration:**
+
+```java
+@Override
+protected void doFilterInternal(request, response, filterChain) {
+    // ... extract token ...
+
+    // CHECK: Is token blacklisted?
+    Date issuedAt = jwtUtil.extractIssuedAt(jwt);
+    if (tokenBlacklistService.isTokenBlacklisted(jwt, email, issuedAt.getTime())) {
+        // Token invalid - don't authenticate
+        filterChain.doFilter(request, response);
+        return;
+    }
+
+    // ... proceed with normal validation ...
+}
+```
+
+---
+
 ## 3. Flow 2: Customer Profile
 
 ### 3.1 Business Flow

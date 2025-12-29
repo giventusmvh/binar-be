@@ -387,7 +387,8 @@ List<LoanApplicationHistory> findByLoanApplicationIdWithApprover(
 | ------------------------- | ---------------------------- | -------------------------------------- |
 | RegisterRequest           | Customer registration        | @NotBlank, @Email, @Size               |
 | LoginRequest              | User login                   | @NotBlank, @Email                      |
-| ChangePasswordRequest     | Change password              | @NotBlank, @Size(min=6)                |
+| ForgotPasswordRequest     | Request password reset       | @NotBlank, @Email                      |
+| ResetPasswordRequest      | Reset password with token    | @NotBlank token, newPassword, confirm  |
 | UpdateProfileRequest      | Profile update               | @NotNull, @Pattern (NIK)               |
 | SelectPlafondRequest      | Select credit limit          | @NotNull productId                     |
 | LoanApplicationRequest    | Submit loan                  | @NotNull amount, tenor, rate, branchId |
@@ -556,12 +557,24 @@ public class AuthServiceImpl implements AuthService {
         // 4. Return AuthResponse
     }
 
-    public void changePassword(Long userId, ChangePasswordRequest request) {
-        // 1. Validate new password matches confirm password
-        // 2. Validate new password is different from current
-        // 3. Get user by ID
-        // 4. Verify current password is correct
-        // 5. Encode and save new password
+    public void forgotPassword(ForgotPasswordRequest request) {
+        // 1. Find user by email (don't reveal if exists)
+        // 2. Generate reset token
+        // 3. Store token in Redis with TTL
+        // 4. Send reset email via Mailtrap
+    }
+
+    public void resetPassword(ResetPasswordRequest request) {
+        // 1. Validate passwords match
+        // 2. Get userId from Redis using token
+        // 3. Update password
+        // 4. Delete reset token
+        // 5. Invalidate all existing tokens (store password-changed timestamp)
+    }
+
+    public void logout(String token) {
+        // 1. Extract expiration from token
+        // 2. Blacklist token in Redis with TTL = remaining lifetime
     }
 }
 ```
@@ -632,13 +645,15 @@ public class ApprovalServiceImpl implements ApprovalService {
 
 ```
 PUBLIC ENDPOINTS (No Auth):
-POST   /api/auth/register     - Customer registration
-POST   /api/auth/login        - User login
-GET    /api/products          - List products
-GET    /api/branches          - List branches
+POST   /api/auth/register        - Customer registration
+POST   /api/auth/login           - User login
+POST   /api/auth/forgot-password - Request password reset email
+POST   /api/auth/reset-password  - Reset password with token (invalidates all existing tokens)
+GET    /api/products             - List products
+GET    /api/branches             - List branches
 
 AUTHENTICATED ENDPOINTS (Any logged-in user):
-POST   /api/auth/change-password - Change password (requires current password)
+POST   /api/auth/logout          - Logout (blacklist current token)
 
 CUSTOMER ENDPOINTS (ROLE_CUSTOMER):
 GET    /api/customer/profile  - Get profile

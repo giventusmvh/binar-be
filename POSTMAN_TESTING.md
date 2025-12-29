@@ -179,15 +179,42 @@ if (pm.response.code === 201) {
 
 ---
 
-### 2.3 Change Password
+### 2.3 Forgot Password
 
-**Endpoint:** `POST /api/auth/change-password`  
-**Auth:** Bearer Token (any authenticated user)
+**Endpoint:** `POST /api/auth/forgot-password`  
+**Auth:** None
+
+> Sends password reset email via Mailtrap. Always returns success for security.
 
 ```json
 // Request Body
 {
-  "currentPassword": "customer123",
+  "email": "john.doe@email.com"
+}
+```
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "If the email exists, a password reset link has been sent",
+  "timestamp": "2025-12-29T10:00:00"
+}
+```
+
+---
+
+### 2.4 Reset Password
+
+**Endpoint:** `POST /api/auth/reset-password`  
+**Auth:** None
+
+> Use token from email. Invalidates ALL existing tokens for the user.
+
+```json
+// Request Body
+{
+  "token": "550e8400-e29b-41d4-a716-446655440000",
   "newPassword": "newPassword456",
   "confirmPassword": "newPassword456"
 }
@@ -197,17 +224,17 @@ if (pm.response.code === 201) {
 // Success Response (200 OK)
 {
   "success": true,
-  "message": "Password changed successfully",
-  "timestamp": "2025-12-22T10:00:00"
+  "message": "Password reset successfully",
+  "timestamp": "2025-12-29T10:00:00"
 }
 ```
 
 ```json
-// Error Response - Wrong current password (400)
+// Error Response - Invalid token (400)
 {
   "success": false,
-  "message": "Current password is incorrect",
-  "timestamp": "2025-12-22T10:00:00"
+  "message": "Invalid or expired reset token",
+  "timestamp": "2025-12-29T10:00:00"
 }
 ```
 
@@ -216,9 +243,29 @@ if (pm.response.code === 201) {
 {
   "success": false,
   "message": "New password and confirm password do not match",
-  "timestamp": "2025-12-22T10:00:00"
+  "timestamp": "2025-12-29T10:00:00"
 }
 ```
+
+---
+
+### 2.5 Logout
+
+**Endpoint:** `POST /api/auth/logout`  
+**Auth:** Bearer Token (any authenticated user)
+
+> Blacklists the current token. Token cannot be used again.
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "Logged out successfully",
+  "timestamp": "2025-12-29T10:00:00"
+}
+```
+
+> **Note:** After logout, calling any protected endpoint with the same token returns 401 Unauthorized.
 
 ---
 

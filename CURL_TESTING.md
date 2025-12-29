@@ -158,51 +158,94 @@ curl -X POST "$BASE_URL/api/auth/login" \
 # Response: 401 Unauthorized
 ```
 
-### 2.3 Change Password
+### 2.3 Forgot Password
 
 ```bash
-# ✅ Success - Change password
-curl -X POST "$BASE_URL/api/auth/change-password" \
+# ✅ Success - Request password reset
+curl -X POST "$BASE_URL/api/auth/forgot-password" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
   -d '{
-    "currentPassword": "customer123",
+    "email": "john.doe@email.com"
+  }'
+
+# Response: 200 OK
+# {"success": true, "message": "If the email exists, a password reset link has been sent"}
+# >> Check Mailtrap for reset email with token
+```
+
+```bash
+# ✅ Success - Non-existent email (same response for security)
+curl -X POST "$BASE_URL/api/auth/forgot-password" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "nonexistent@email.com"
+  }'
+
+# Response: 200 OK (does not reveal if email exists)
+```
+
+### 2.4 Reset Password
+
+```bash
+# ✅ Success - Reset password with token from email
+curl -X POST "$BASE_URL/api/auth/reset-password" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "550e8400-e29b-41d4-a716-446655440000",
     "newPassword": "newpassword456",
     "confirmPassword": "newpassword456"
   }'
 
 # Response: 200 OK
-# {"success": true, "message": "Password changed successfully"}
+# {"success": true, "message": "Password reset successfully"}
+# >> All existing tokens for this user are now INVALIDATED
 ```
 
 ```bash
-# ❌ Error - Wrong current password
-curl -X POST "$BASE_URL/api/auth/change-password" \
+# ❌ Error - Invalid or expired token
+curl -X POST "$BASE_URL/api/auth/reset-password" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
   -d '{
-    "currentPassword": "wrongcurrent",
+    "token": "invalid-token",
     "newPassword": "newpassword456",
     "confirmPassword": "newpassword456"
   }'
 
 # Response: 400 Bad Request
-# {"success": false, "message": "Current password is incorrect"}
+# {"success": false, "message": "Invalid or expired reset token"}
 ```
 
 ```bash
 # ❌ Error - Passwords don't match
-curl -X POST "$BASE_URL/api/auth/change-password" \
+curl -X POST "$BASE_URL/api/auth/reset-password" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
   -d '{
-    "currentPassword": "customer123",
+    "token": "550e8400-e29b-41d4-a716-446655440000",
     "newPassword": "newpassword456",
     "confirmPassword": "differentpassword"
   }'
 
 # Response: 400 Bad Request
 # {"success": false, "message": "New password and confirm password do not match"}
+```
+
+### 2.5 Logout
+
+```bash
+# ✅ Success - Logout (blacklist current token)
+curl -X POST "$BASE_URL/api/auth/logout" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: 200 OK
+# {"success": true, "message": "Logged out successfully"}
+```
+
+```bash
+# Verify token is blacklisted
+curl -X GET "$BASE_URL/api/customer/profile" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: 401 Unauthorized (token is now invalid)
 ```
 
 ---
