@@ -1,5 +1,6 @@
 package com.gvn.binarbe.security;
 
+import com.gvn.binarbe.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,10 +16,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * JWT authentication filter that processes Bearer tokens.
  * Extracts and validates JWT from Authorization header.
+ * Checks token blacklist before authenticating.
  */
 @Slf4j
 @Component
@@ -27,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(
@@ -51,6 +55,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // If email extracted and no existing authentication
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                // Check if token is blacklisted before validating
+                Date issuedAt = jwtUtil.extractIssuedAt(jwt);
+                if (tokenBlacklistService.isTokenBlacklisted(jwt, userEmail, issuedAt.getTime())) {
+                    log.debug("Token is blacklisted for user: {}", userEmail);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
                 if (jwtUtil.validateToken(jwt, userDetails)) {
@@ -69,4 +82,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 }

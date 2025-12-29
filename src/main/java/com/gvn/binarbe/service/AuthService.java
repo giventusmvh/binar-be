@@ -36,8 +36,16 @@ public interface AuthService {
 
     /**
      * Reset password using token received via email.
+     * Also invalidates all existing tokens for the user.
      *
      * @param request contains token and new password
      */
     void resetPassword(ResetPasswordRequest request);
+
+    /**
+     * Logout user by blacklisting their current token.
+     *
+     * @param token JWT token to blacklist
+     */
+    void logout(String token);
 }

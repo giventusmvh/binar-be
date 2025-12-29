@@ -17,6 +17,7 @@ import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.security.JwtUtil;
 import com.gvn.binarbe.service.AuthService;
 import com.gvn.binarbe.service.EmailService;
+import com.gvn.binarbe.service.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -54,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
         private final UserDetailsService userDetailsService;
         private final EmailService emailService;
         private final StringRedisTemplate redisTemplate;
+        private final TokenBlacklistService tokenBlacklistService;
 
         @Value("${app.password-reset.token-expiry-minutes}")
         private int tokenExpiryMinutes;
@@ -185,10 +188,30 @@ public class AuthServiceImpl implements AuthService {
                 user.setPassword(passwordEncoder.encode(request.getNewPassword()));
                 userRepository.save(user);
 
-                // Delete token from Redis (one-time use)
+                // Delete reset token from Redis (one-time use)
                 redisTemplate.delete(redisKey);
 
-                log.info("Password reset successfully for user ID: {}", userId);
+                // Invalidate all existing tokens
+                tokenBlacklistService.invalidateAllUserTokens(user.getEmail());
+
+                log.info("Password reset successfully for user ID: {}. All existing tokens invalidated.", userId);
+        }
+
+        @Override
+        public void logout(String token) {
+                log.info("Processing logout request");
+
+                try {
+                        // Extract expiration from token to calculate TTL
+                        Date expiration = jwtUtil.extractExpiration(token);
+                        long ttlMillis = expiration.getTime() - System.currentTimeMillis();
+
+                        // Blacklist the token
+                        tokenBlacklistService.blacklistToken(token, ttlMillis);
+                } catch (Exception e) {
+                        log.error("Error during logout: {}", e.getMessage());
+                        // Still return success - token might already be invalid
+                }
         }
 
         private AuthResponse buildAuthResponse(User user, String token) {

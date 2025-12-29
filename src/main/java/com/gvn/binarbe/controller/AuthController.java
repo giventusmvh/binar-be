@@ -8,6 +8,7 @@ import com.gvn.binarbe.dto.response.AuthResponse;
 import com.gvn.binarbe.service.AuthService;
 import com.gvn.binarbe.util.ApiResponse;
 import com.gvn.binarbe.util.ResponseUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller for authentication operations.
- * Handles customer registration, user login, and password reset.
+ * Handles customer registration, user login, password reset, and logout.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -62,5 +63,19 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
         return ResponseUtil.ok("Password reset successfully");
+    }
+
+    /**
+     * Logout user by blacklisting current token.
+     * POST /api/auth/logout
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            authService.logout(token);
+        }
+        return ResponseUtil.ok("Logged out successfully");
     }
 }

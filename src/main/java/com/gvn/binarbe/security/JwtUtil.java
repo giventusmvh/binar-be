@@ -44,6 +44,13 @@ public class JwtUtil {
     }
 
     /**
+     * Extract issued at date from token.
+     */
+    public Date extractIssuedAt(String token) {
+        return extractClaim(token, Claims::getIssuedAt);
+    }
+
+    /**
      * Extract a specific claim from token.
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
