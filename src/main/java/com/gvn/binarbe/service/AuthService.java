@@ -1,8 +1,9 @@
 package com.gvn.binarbe.service;
 
-import com.gvn.binarbe.dto.request.ChangePasswordRequest;
+import com.gvn.binarbe.dto.request.ForgotPasswordRequest;
 import com.gvn.binarbe.dto.request.LoginRequest;
 import com.gvn.binarbe.dto.request.RegisterRequest;
+import com.gvn.binarbe.dto.request.ResetPasswordRequest;
 import com.gvn.binarbe.dto.response.AuthResponse;
 
 /**
@@ -27,11 +28,16 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
 
     /**
-     * Change user password.
-     * Requires current password verification before allowing password change.
+     * Initiate password reset by sending email with reset token.
      *
-     * @param userId  the ID of the user changing their password
-     * @param request change password data containing current and new password
+     * @param request contains user email
      */
-    void changePassword(Long userId, ChangePasswordRequest request);
+    void forgotPassword(ForgotPasswordRequest request);
+
+    /**
+     * Reset password using token received via email.
+     *
+     * @param request contains token and new password
+     */
+    void resetPassword(ResetPasswordRequest request);
 }

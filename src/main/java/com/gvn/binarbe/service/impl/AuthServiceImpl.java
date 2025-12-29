@@ -1,8 +1,9 @@
 package com.gvn.binarbe.service.impl;
 
-import com.gvn.binarbe.dto.request.ChangePasswordRequest;
+import com.gvn.binarbe.dto.request.ForgotPasswordRequest;
 import com.gvn.binarbe.dto.request.LoginRequest;
 import com.gvn.binarbe.dto.request.RegisterRequest;
+import com.gvn.binarbe.dto.request.ResetPasswordRequest;
 import com.gvn.binarbe.dto.response.AuthResponse;
 import com.gvn.binarbe.entity.Role;
 import com.gvn.binarbe.entity.User;
@@ -15,8 +16,11 @@ import com.gvn.binarbe.repository.UserProfileRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.security.JwtUtil;
 import com.gvn.binarbe.service.AuthService;
+import com.gvn.binarbe.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +43,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+        private static final String PASSWORD_RESET_KEY_PREFIX = "password-reset:";
+
         private final UserRepository userRepository;
         private final UserProfileRepository userProfileRepository;
         private final RoleRepository roleRepository;
@@ -44,6 +52,11 @@ public class AuthServiceImpl implements AuthService {
         private final JwtUtil jwtUtil;
         private final AuthenticationManager authenticationManager;
         private final UserDetailsService userDetailsService;
+        private final EmailService emailService;
+        private final StringRedisTemplate redisTemplate;
+
+        @Value("${app.password-reset.token-expiry-minutes}")
+        private int tokenExpiryMinutes;
 
         @Override
         @Transactional
@@ -115,34 +128,67 @@ public class AuthServiceImpl implements AuthService {
         }
 
         @Override
-        @Transactional
-        public void changePassword(Long userId, ChangePasswordRequest request) {
-                log.info("Changing password for user ID: {}", userId);
+        public void forgotPassword(ForgotPasswordRequest request) {
+                log.info("Processing forgot password request for: {}", request.getEmail());
 
-                // Validate new password and confirm password match
+                // Find user by email (don't reveal if email exists for security)
+                User user = userRepository.findByEmail(request.getEmail())
+                                .orElse(null);
+
+                if (user == null) {
+                        // Log but don't reveal to client that email doesn't exist
+                        log.warn("Forgot password requested for non-existent email: {}", request.getEmail());
+                        return;
+                }
+
+                // Generate reset token
+                String resetToken = UUID.randomUUID().toString();
+                String redisKey = PASSWORD_RESET_KEY_PREFIX + resetToken;
+
+                // Store token in Redis with TTL
+                redisTemplate.opsForValue().set(
+                                redisKey,
+                                user.getId().toString(),
+                                tokenExpiryMinutes,
+                                TimeUnit.MINUTES);
+
+                // Send email with reset link
+                emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+
+                log.info("Password reset email sent to: {}", user.getEmail());
+        }
+
+        @Override
+        @Transactional
+        public void resetPassword(ResetPasswordRequest request) {
+                log.info("Processing password reset with token");
+
+                // Validate passwords match
                 if (!request.getNewPassword().equals(request.getConfirmPassword())) {
                         throw BusinessException.badRequest("New password and confirm password do not match");
                 }
 
-                // Validate new password is different from current
-                if (request.getCurrentPassword().equals(request.getNewPassword())) {
-                        throw BusinessException.badRequest("New password must be different from current password");
+                // Get user ID from Redis
+                String redisKey = PASSWORD_RESET_KEY_PREFIX + request.getToken();
+                String userIdStr = redisTemplate.opsForValue().get(redisKey);
+
+                if (userIdStr == null) {
+                        throw BusinessException.badRequest("Invalid or expired reset token");
                 }
 
-                // Get user
+                // Find user
+                Long userId = Long.parseLong(userIdStr);
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> BusinessException.notFound("User not found"));
-
-                // Verify current password
-                if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-                        throw BusinessException.badRequest("Current password is incorrect");
-                }
 
                 // Update password
                 user.setPassword(passwordEncoder.encode(request.getNewPassword()));
                 userRepository.save(user);
 
-                log.info("Password changed successfully for user ID: {}", userId);
+                // Delete token from Redis (one-time use)
+                redisTemplate.delete(redisKey);
+
+                log.info("Password reset successfully for user ID: {}", userId);
         }
 
         private AuthResponse buildAuthResponse(User user, String token) {
