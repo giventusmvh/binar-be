@@ -1,0 +1,37 @@
+spring.application.name=binar-be
+
+# SQL Server Configuration
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+spring.datasource.driver-class-name=
+
+# JPA/Hibernate Configuration
+spring.jpa.hibernate.ddl-auto=
+spring.jpa.show-sql=
+spring.jpa.properties.hibernate.format_sql=
+spring.jpa.properties.hibernate.dialect=
+
+# JWT Configuration (Base64 encoded secret for JJWT 0.12.x)
+jwt.secret=
+jwt.expiration=
+
+# Logging
+logging.level.org.springframework.security=DEBUG
+logging.level.com.gvn.binarbe=DEBUG
+
+# Mailtrap Email Configuration
+spring.mail.host=
+spring.mail.port=
+spring.mail.username=
+spring.mail.password=
+spring.mail.properties.mail.smtp.auth=
+spring.mail.properties.mail.smtp.starttls.enable=
+
+# Redis Configuration
+spring.data.redis.host=
+spring.data.redis.port=
+
+# Password Reset Configuration
+app.password-reset.token-expiry-minutes=
+app.password-reset.base-url=
