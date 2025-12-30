@@ -1,5 +1,10 @@
 HELP.md
 target/
+
+# Environment variables (sensitive)
+.env
+.env.local
+.env.production
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

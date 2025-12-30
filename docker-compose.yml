@@ -6,17 +6,22 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: binar-be-app
+    container_name: ${APP_CONTAINER_NAME:-binar-be-app}
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=binar-be;encrypt=true;trustServerCertificate=true
-      - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=StrongPass123!
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - JWT_SECRET=YmluYXItYmUtbG9hbi1hcHBsaWNhdGlvbi1zZWNyZXQta2V5LTIwMjQtdGhpcy1pcy1hLXZlcnktc2VjdXJlLWtleS1mb3Itand0LXNpZ25pbmctbWluaW11bS0yNTYtYml0cw==
-      - JWT_EXPIRATION=86400000
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://${DB_HOST:-sqlserver}:${DB_PORT:-1433};databaseName=${DB_NAME:-binar-be};encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-sa}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-StrongPass123!}
+      - SPRING_DATA_REDIS_HOST=${REDIS_HOST:-redis}
+      - SPRING_DATA_REDIS_PORT=${REDIS_PORT:-6379}
+      - JWT_SECRET=${JWT_SECRET:-YmluYXItYmUtbG9hbi1hcHBsaWNhdGlvbi1zZWNyZXQta2V5LTIwMjQtdGhpcy1pcy1hLXZlcnktc2VjdXJlLWtleS1mb3Itand0LXNpZ25pbmctbWluaW11bS0yNTYtYml0cw==}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+      - SPRING_MAIL_HOST=${MAIL_HOST:-sandbox.smtp.mailtrap.io}
+      - SPRING_MAIL_PORT=${MAIL_PORT:-2525}
+      - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
+      - APP_PASSWORD_RESET_BASE_URL=${PASSWORD_RESET_BASE_URL:-http://localhost:4200/reset-password}
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -29,19 +34,19 @@ services:
   # Microsoft SQL Server
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: binar-be-sqlserver
+    container_name: ${DB_CONTAINER_NAME:-binar-be-sqlserver}
     ports:
-      - "1433:1433"
+      - "${DB_EXTERNAL_PORT:-1433}:1433"
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=StrongPass123!
-      - MSSQL_PID=Express
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD:-StrongPass123!}
+      - MSSQL_PID=${MSSQL_PID:-Express}
     volumes:
       - sqlserver-data:/var/opt/mssql
     networks:
       - binar-network
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "StrongPass123!" -C -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${DB_PASSWORD:-StrongPass123!}" -C -Q "SELECT 1" || exit 1
       interval: 10s
       timeout: 5s
       retries: 10
@@ -51,14 +56,14 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: binar-be
+    container_name: ${REDIS_CONTAINER_NAME:-binar-be-redis}
     ports:
-      - "6380:6379"
+      - "${REDIS_EXTERNAL_PORT:-6380}:6379"
     volumes:
       - redis-data:/data
     networks:
       - binar-network
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
     restart: unless-stopped
 
 networks:
