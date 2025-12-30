@@ -1,0 +1,72 @@
+version: "3.8"
+
+services:
+  # Spring Boot Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: binar-be-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=binar-be;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=StrongPass123!
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - JWT_SECRET=YmluYXItYmUtbG9hbi1hcHBsaWNhdGlvbi1zZWNyZXQta2V5LTIwMjQtdGhpcy1pcy1hLXZlcnktc2VjdXJlLWtleS1mb3Itand0LXNpZ25pbmctbWluaW11bS0yNTYtYml0cw==
+      - JWT_EXPIRATION=86400000
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - binar-network
+    restart: unless-stopped
+
+  # Microsoft SQL Server
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: binar-be-sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=StrongPass123!
+      - MSSQL_PID=Express
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - binar-network
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "StrongPass123!" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: binar-be
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - binar-network
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+networks:
+  binar-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+    driver: local
+  redis-data:
+    driver: local
