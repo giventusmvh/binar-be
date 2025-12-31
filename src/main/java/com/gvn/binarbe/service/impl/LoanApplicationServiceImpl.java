@@ -41,6 +41,21 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 User customer = userRepository.findByEmail(email)
                                 .orElseThrow(() -> BusinessException.notFound("User not found"));
 
+                // Check if user has any pending loan applications
+                List<LoanStatus> pendingStatuses = List.of(
+                                LoanStatus.SUBMITTED,
+                                LoanStatus.MARKETING_APPROVED,
+                                LoanStatus.BRANCH_MANAGER_APPROVED);
+
+                boolean hasPendingLoan = loanApplicationRepository
+                                .existsByCustomerIdAndStatusIn(customer.getId(), pendingStatuses);
+
+                if (hasPendingLoan) {
+                        throw BusinessException.badRequest(
+                                        "You already have a pending loan application. " +
+                                                        "Please wait until it is fully approved or rejected before submitting a new one.");
+                }
+
                 // Check if profile is complete
                 UserProfile profile = userProfileRepository.findByUserId(customer.getId())
                                 .orElseThrow(

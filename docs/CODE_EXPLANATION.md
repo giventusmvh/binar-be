@@ -1266,6 +1266,8 @@ public LoanApplicationResponse submitLoan(String email, SubmitLoanRequest reques
 ```
 Request masuk
     │
+    ├─ Has pending loan? ─── YES ──→ 400: "You already have a pending loan application..."
+    │
     ├─ Profile lengkap? ─── NO ──→ 400: "Please complete your profile..."
     │
     ├─ Punya plafond aktif? ─ NO ──→ 400: "Please select a plafond first..."

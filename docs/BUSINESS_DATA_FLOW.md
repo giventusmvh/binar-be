@@ -452,6 +452,8 @@ The system uses **snapshot** data to preserve information at the time of action:
 │  Pre-conditions:                                                            │
 │  ✅ Profile must be COMPLETE                                                │
 │  ✅ Must have active plafond                                                │
+│  ✅ Must NOT have any pending loan applications                             │
+│     (SUBMITTED, MARKETING_APPROVED, or BRANCH_MANAGER_APPROVED)             │
 │                                                                             │
 │  Amount validation:                                                         │
 │  ✅ requested_amount ≤ plafond.remainingAmount                              │

@@ -34,4 +34,10 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     @Query("SELECT la FROM LoanApplication la LEFT JOIN FETCH la.product LEFT JOIN FETCH la.branch LEFT JOIN FETCH la.customer WHERE la.status = :status AND la.branch.id = :branchId ORDER BY la.createdAt ASC")
     List<LoanApplication> findByStatusAndBranchIdWithDetails(@Param("status") LoanStatus status,
             @Param("branchId") Long branchId);
+
+    /**
+     * Check if customer has any pending loan applications.
+     * Used to prevent multiple simultaneous loan submissions.
+     */
+    boolean existsByCustomerIdAndStatusIn(Long customerId, List<LoanStatus> statuses);
 }

@@ -587,14 +587,15 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     public LoanApplicationResponse submitLoan(String email, LoanApplicationRequest request) {
         // 1. Get customer
-        // 2. Validate profile is COMPLETE (NIK, birthdate, phone, address)
-        // 3. Get user's active plafond
-        // 4. Validate amount <= plafond.remainingAmount (not product.amount)
-        // 5. Validate tenor <= plafond.tenor
-        // 6. Validate rate >= plafond.rate
-        // 7. Create LoanApplication with requested values
-        // 8. Create initial history entry
-        // 9. Return response
+        // 2. Check for pending loan applications (SUBMITTED, MARKETING_APPROVED, BRANCH_MANAGER_APPROVED)
+        // 3. Validate profile is COMPLETE (NIK, birthdate, phone, address)
+        // 4. Get user's active plafond
+        // 5. Validate amount <= plafond.remainingAmount (not product.amount)
+        // 6. Validate tenor <= plafond.tenor
+        // 7. Validate rate >= plafond.rate
+        // 8. Create LoanApplication with requested values
+        // 9. Create initial history entry
+        // 10. Return response
     }
 }
 ```

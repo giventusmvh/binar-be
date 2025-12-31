@@ -545,9 +545,11 @@ if (pm.response.code === 201) {
 >
 > 1. Customer profile must be complete (NIK, birthdate, phone, address)
 > 2. Customer must have selected a plafond first
+> 3. Customer must NOT have any pending loan applications
 
 > **Validation Rules:**
 >
+> - No pending loan in status: `SUBMITTED`, `MARKETING_APPROVED`, or `BRANCH_MANAGER_APPROVED`
 > - `amount` must be ≤ plafond **remainingAmount** (not product.amount)
 > - `tenor` must be ≤ plafond product tenor
 > - `interestRate` must be ≥ plafond product interest rate
@@ -612,6 +614,15 @@ if (pm.response.code === 201) {
   "success": false,
   "message": "Requested amount exceeds remaining plafond. Remaining: Rp 5000000",
   "timestamp": "2025-12-23T22:00:00"
+}
+```
+
+```json
+// Error Response - Has pending loan application (400)
+{
+  "success": false,
+  "message": "You already have a pending loan application. Please wait until it is fully approved or rejected before submitting a new one.",
+  "timestamp": "2025-12-31T17:50:00"
 }
 ```
 

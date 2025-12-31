@@ -602,13 +602,29 @@ curl -X POST "$BASE_URL/api/loans" \
 # {"success": false, "message": "Branch not found"}
 ```
 
+````bash
+# ❌ Error - Has pending loan application
+# (Customer already has a loan in SUBMITTED, MARKETING_APPROVED, or BRANCH_MANAGER_APPROVED status)
+curl -X POST "$BASE_URL/api/loans" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{
+    "branchId": 1,
+    "amount": 2000000,
+    "tenor": 6,
+    "interestRate": 12.0
+  }'
+
+# Response: 400 Bad Request
+# {"success": false, "message": "You already have a pending loan application. Please wait until it is fully approved or rejected before submitting a new one."}
+
 ### 4.4 Get My Loans
 
 ```bash
 # ✅ Success - Get all loans
 curl -X GET "$BASE_URL/api/loans" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN"
-```
+````
 
 ### 4.5 Get Loan by ID
 

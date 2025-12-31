@@ -321,6 +321,7 @@ Authorization: Bearer <jwt_token>
 {"message": "Requested amount exceeds remaining plafond. Remaining: Rp 2000000.00"}
 {"message": "Please complete your profile before submitting a loan application."}
 {"message": "Please select a plafond first before submitting a loan application."}
+{"message": "You already have a pending loan application. Please wait until it is fully approved or rejected before submitting a new one."}
 ```
 
 #### Get My Loans
