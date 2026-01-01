@@ -894,12 +894,18 @@ src/main/java/com/gvn/binarbe
 │   ├── LoanApplicationService.java
 │   ├── ApprovalService.java
 │   ├── SuperAdminService.java
+│   ├── PlafondService.java
+│   ├── EmailService.java              ← Password reset email
+│   ├── TokenBlacklistService.java     ← Redis token blacklisting
 │   └── impl/
 │       ├── AuthServiceImpl.java
 │       ├── CustomerServiceImpl.java
 │       ├── LoanApplicationServiceImpl.java
 │       ├── ApprovalServiceImpl.java
-│       └── SuperAdminServiceImpl.java
+│       ├── SuperAdminServiceImpl.java
+│       ├── PlafondServiceImpl.java
+│       ├── EmailServiceImpl.java
+│       └── TokenBlacklistServiceImpl.java
 │
 ├── util/
 │   ├── ApiResponse.java
@@ -1063,4 +1069,4 @@ canActivate(route: ActivatedRouteSnapshot): boolean {
 
 ---
 
-_Documentation generated: 2025-12-24_
+_Documentation generated: 2026-01-01_

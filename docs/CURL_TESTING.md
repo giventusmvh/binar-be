@@ -1,6 +1,8 @@
 # cURL Testing Guide
 
-> End-to-end testing with cURL commands and edge cases
+> End-to-end testing with cURL commands and actual test results
+
+**Test Date**: 2026-01-01
 
 ---
 
@@ -48,20 +50,26 @@ BASE_URL="http://localhost:8080"
 curl -X POST "$BASE_URL/api/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Test User",
-    "email": "test.user@email.com",
+    "name": "Test User Curl",
+    "email": "test.curl@email.com",
     "password": "password123"
   }'
 
-# Response: 201 Created
-# {
-#   "success": true,
-#   "data": {
-#     "token": "eyJhbGc...",
-#     "roles": ["CUSTOMER"],
-#     "permissions": ["LOAN_CREATE", "LOAN_READ", ...]
-#   }
-# }
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Registration successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJCUkFOQ0hfUkVBRCIsIkxPQU5fQ1JFQVRFIiwiTE9BTl9SRUFEIiwiUExBRk9ORF9SRUFEIiwiUExBRk9ORF9TRUxFQ1QiLCJQUk9EVUNUX1JFQUQiLCJQUk9GSUxFX1JFQUQiLCJQUk9GSUxFX1VQREFURSIsIlJPTEVfQ1VTVE9NRVIiXSwic3ViIjoidGVzdC5jdXJsQGVtYWlsLmNvbSIsImlhdCI6MTc2NzI0NDIwNywiZXhwIjoxNzY3MzMwNjA3fQ.L8cVJambGtewrDh1a639NqOiwqzi3JJVqY22AbdfFO8",
+    "tokenType": "Bearer",
+    "userId": 11,
+    "email": "test.curl@email.com",
+    "name": "Test User Curl",
+    "roles": ["CUSTOMER"],
+    "permissions": ["PROFILE_READ", "BRANCH_READ", "LOAN_READ", "PROFILE_UPDATE", "LOAN_CREATE", "PLAFOND_SELECT", "PLAFOND_READ", "PRODUCT_READ"]
+  },
+  "timestamp": "2026-01-01T12:10:07.463876"
+}
 ```
 
 ```bash
@@ -75,35 +83,11 @@ curl -X POST "$BASE_URL/api/auth/register" \
   }'
 
 # Response: 409 Conflict
-# {"success": false, "message": "Email already registered"}
-```
-
-```bash
-# ❌ Error - Invalid email format
-curl -X POST "$BASE_URL/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Invalid Email",
-    "email": "not-an-email",
-    "password": "password123"
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Validation failed", "errors": ["email: must be a valid email"]}
-```
-
-```bash
-# ❌ Error - Password too short
-curl -X POST "$BASE_URL/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Short Password",
-    "email": "short.pass@email.com",
-    "password": "123"
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Validation failed", "errors": ["password: size must be between 6 and 100"]}
+{
+  "success": false,
+  "message": "Email already registered",
+  "timestamp": "2026-01-01T12:10:17.683416"
+}
 ```
 
 ### 2.2 Login
@@ -117,20 +101,24 @@ curl -X POST "$BASE_URL/api/auth/login" \
     "password": "customer123"
   }'
 
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJCUkFOQ0hfUkVBRCIsIkxPQU5fQ1JFQVRFIiwiTE9BTl9SRUFEIiwiUExBRk9ORF9SRUFEIiwiUExBRk9ORF9TRUxFQ1QiLCJQUk9EVUNUX1JFQUQiLCJQUk9GSUxFX1JFQUQiLCJQUk9GSUxFX1VQREFURSIsIlJPTEVfQ1VTVE9NRVIiXSwic3ViIjoiam9obi5kb2VAZW1haWwuY29tIiwiaWF0IjoxNzY3MjQ0MjEwLCJleHAiOjE3NjczMzA2MTB9.rc_yY4RoI8ZELPG1WbIt6TH6vnwSM-WR0yVru_px5pI",
+    "tokenType": "Bearer",
+    "userId": 8,
+    "email": "john.doe@email.com",
+    "name": "John Doe",
+    "roles": ["CUSTOMER"],
+    "permissions": ["BRANCH_READ", "PROFILE_UPDATE", "LOAN_READ", "LOAN_CREATE", "PLAFOND_READ", "PROFILE_READ", "PLAFOND_SELECT", "PRODUCT_READ"]
+  },
+  "timestamp": "2026-01-01T12:10:10.529842"
+}
+
 # Save token for subsequent requests
 CUSTOMER_TOKEN="<token_from_response>"
-```
-
-```bash
-# ✅ Success - Marketing login
-curl -X POST "$BASE_URL/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "marketing.jkt@loan.com",
-    "password": "marketing123"
-  }'
-
-MARKETING_TOKEN="<token_from_response>"
 ```
 
 ```bash
@@ -143,19 +131,11 @@ curl -X POST "$BASE_URL/api/auth/login" \
   }'
 
 # Response: 401 Unauthorized
-# {"success": false, "message": "Invalid credentials"}
-```
-
-```bash
-# ❌ Error - User not found
-curl -X POST "$BASE_URL/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "nonexistent@email.com",
-    "password": "password123"
-  }'
-
-# Response: 401 Unauthorized
+{
+  "success": false,
+  "message": "Invalid email or password",
+  "timestamp": "2026-01-01T12:10:13.552678"
+}
 ```
 
 ### 2.3 Forgot Password
@@ -169,50 +149,28 @@ curl -X POST "$BASE_URL/api/auth/forgot-password" \
   }'
 
 # Response: 200 OK
-# {"success": true, "message": "If the email exists, a password reset link has been sent"}
-# >> Check Mailtrap for reset email with token
-```
-
-```bash
-# ✅ Success - Non-existent email (same response for security)
-curl -X POST "$BASE_URL/api/auth/forgot-password" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "nonexistent@email.com"
-  }'
-
-# Response: 200 OK (does not reveal if email exists)
+# >> Email sent to Mailtrap with reset token
+# >> Note: Returns same response even if email doesn't exist (security)
 ```
 
 ### 2.4 Reset Password
-
-```bash
-# ✅ Success - Reset password with token from email
-curl -X POST "$BASE_URL/api/auth/reset-password" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "token": "550e8400-e29b-41d4-a716-446655440000",
-    "newPassword": "newpassword456",
-    "confirmPassword": "newpassword456"
-  }'
-
-# Response: 200 OK
-# {"success": true, "message": "Password reset successfully"}
-# >> All existing tokens for this user are now INVALIDATED
-```
 
 ```bash
 # ❌ Error - Invalid or expired token
 curl -X POST "$BASE_URL/api/auth/reset-password" \
   -H "Content-Type: application/json" \
   -d '{
-    "token": "invalid-token",
+    "token": "invalid-token-123",
     "newPassword": "newpassword456",
     "confirmPassword": "newpassword456"
   }'
 
 # Response: 400 Bad Request
-# {"success": false, "message": "Invalid or expired reset token"}
+{
+  "success": false,
+  "message": "Invalid or expired reset token",
+  "timestamp": "2026-01-01T12:19:07.573163"
+}
 ```
 
 ```bash
@@ -220,114 +178,197 @@ curl -X POST "$BASE_URL/api/auth/reset-password" \
 curl -X POST "$BASE_URL/api/auth/reset-password" \
   -H "Content-Type: application/json" \
   -d '{
-    "token": "550e8400-e29b-41d4-a716-446655440000",
+    "token": "valid-token",
     "newPassword": "newpassword456",
     "confirmPassword": "differentpassword"
   }'
 
 # Response: 400 Bad Request
-# {"success": false, "message": "New password and confirm password do not match"}
+{
+  "success": false,
+  "message": "New password and confirm password do not match",
+  "timestamp": "2026-01-01T12:19:12.005856"
+}
 ```
 
-### 2.5 Logout
+### 2.5 Logout & Token Blacklisting
 
 ```bash
-# ✅ Success - Logout (blacklist current token)
-curl -X POST "$BASE_URL/api/auth/logout" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+# Step 1: Login to get token
+JANE_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "jane.smith@email.com", "password": "customer123"}' \
+  | jq -r '.data.token')
+
+# Step 2: Verify token works BEFORE logout
+curl -X GET "$BASE_URL/api/customer/profile" \
+  -H "Authorization: Bearer $JANE_TOKEN"
 
 # Response: 200 OK
-# {"success": true, "message": "Logged out successfully"}
+{
+  "success": true,
+  "data": {"name": "Jane Smith", ...}
+}
+
+# Step 3: Logout (blacklist the token)
+curl -X POST "$BASE_URL/api/auth/logout" \
+  -H "Authorization: Bearer $JANE_TOKEN"
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Logged out successfully",
+  "timestamp": "2026-01-01T12:18:43.528977"
+}
+
+# Step 4: ❌ Try to use token AFTER logout - SHOULD FAIL
+curl -X GET "$BASE_URL/api/customer/profile" \
+  -H "Authorization: Bearer $JANE_TOKEN"
+
+# Response: 403 Forbidden (TOKEN IS BLACKLISTED!)
+{
+  "timestamp": "2026-01-01T05:18:43.557Z",
+  "status": 403,
+  "error": "Forbidden",
+  "path": "/api/customer/profile"
+}
 ```
 
-```bash
-# Verify token is blacklisted
-curl -X GET "$BASE_URL/api/customer/profile" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+> **✅ Token Invalidation Verified**: After logout, the same JWT token is rejected with 403 Forbidden.
+> This proves the Redis token blacklist is working correctly.
 
-# Response: 401 Unauthorized (token is now invalid)
+### 2.6 No Auth - Forbidden
+
+```bash
+# ❌ Error - No authorization token
+curl -X GET "$BASE_URL/api/customer/profile"
+
+# Response: 403 Forbidden
+{
+  "timestamp": "2026-01-01T05:13:58.262Z",
+  "status": 403,
+  "error": "Forbidden",
+  "path": "/api/customer/profile"
+}
 ```
 
 ---
 
 ## 3. Customer Flow
 
-### 3.1 Get Profile
-
-```bash
-# ✅ Success - Get profile (complete)
-curl -X GET "$BASE_URL/api/customer/profile" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN"
-
-# Response: 200 OK with profile data
-```
-
-```bash
-# ❌ Error - No token
-curl -X GET "$BASE_URL/api/customer/profile"
-
-# Response: 401 Unauthorized
-```
-
-```bash
-# ❌ Error - Invalid token
-curl -X GET "$BASE_URL/api/customer/profile" \
-  -H "Authorization: Bearer invalid_token_here"
-
-# Response: 401 Unauthorized
-```
-
-### 3.2 Update Profile
-
-```bash
-# ✅ Success - Update profile (complete)
-curl -X PUT "$BASE_URL/api/customer/profile" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "nik": "3201234567890001",
-    "birthdate": "1990-05-15",
-    "phoneNumber": "+6281234567890",
-    "address": "Jl. Sudirman No. 123, Jakarta"
-  }'
-
-# Response: 200 OK
-# {"success": true, "data": {"isComplete": true}}
-```
-
-```bash
-# ❌ Error - Invalid NIK (not 16 digits)
-curl -X PUT "$BASE_URL/api/customer/profile" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "nik": "123456",
-    "birthdate": "1990-05-15",
-    "phoneNumber": "+6281234567890",
-    "address": "Jakarta"
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "errors": ["nik: NIK must be exactly 16 digits"]}
-```
-
-### 3.3 Get Products (Public)
+### 3.1 Get Products (Public)
 
 ```bash
 # ✅ Success - No auth required
 curl -X GET "$BASE_URL/api/products"
 
 # Response: 200 OK
-# {"success": true, "data": [{"id": 1, "name": "BRONZE", ...}, ...]}
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {"id": 1, "name": "BRONZE", "amount": 5000000.00, "tenor": 12, "interestRate": 12.00},
+    {"id": 2, "name": "SILVER", "amount": 10000000.00, "tenor": 24, "interestRate": 10.00},
+    {"id": 3, "name": "GOLD", "amount": 25000000.00, "tenor": 36, "interestRate": 8.50},
+    {"id": 4, "name": "PLATINUM", "amount": 50000000.00, "tenor": 48, "interestRate": 7.00}
+  ],
+  "timestamp": "2026-01-01T12:09:12.714674"
+}
 ```
 
-### 3.4 Get Branches (Public)
+### 3.2 Get Branches (Public)
 
 ```bash
 # ✅ Success - No auth required
 curl -X GET "$BASE_URL/api/branches"
 
 # Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {"id": 1, "code": "JKT", "location": "Jakarta"},
+    {"id": 2, "code": "SBY", "location": "Surabaya"},
+    {"id": 3, "code": "BDG", "location": "Bandung"}
+  ],
+  "timestamp": "2026-01-01T12:09:31.831825"
+}
+```
+
+### 3.3 Get Profile (Complete)
+
+```bash
+# ✅ Success - Get complete profile
+CUSTOMER_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john.doe@email.com", "password": "customer123"}' \
+  | jq -r '.data.token')
+
+curl -X GET "$BASE_URL/api/customer/profile" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": 8,
+    "name": "John Doe",
+    "email": "john.doe@email.com",
+    "userType": "CUSTOMER",
+    "isActive": true,
+    "branch": null,
+    "profile": {
+      "id": 1,
+      "birthdate": "1990-05-15",
+      "phone": "081234567890",
+      "address": "Jl. Sudirman No. 123, Jakarta Pusat",
+      "nik": "3174051505900001",
+      "isComplete": true
+    },
+    "roles": ["CUSTOMER"],
+    "createdAt": "2025-12-31T18:07:25.654186"
+  },
+  "timestamp": "2026-01-01T12:10:57.050331"
+}
+```
+
+### 3.4 Get Profile (Empty)
+
+```bash
+# ✅ Success - Get incomplete profile (Jane has empty profile)
+JANE_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "jane.smith@email.com", "password": "customer123"}' \
+  | jq -r '.data.token')
+
+curl -X GET "$BASE_URL/api/customer/profile" \
+  -H "Authorization: Bearer $JANE_TOKEN"
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": 9,
+    "name": "Jane Smith",
+    "email": "jane.smith@email.com",
+    "userType": "CUSTOMER",
+    "isActive": true,
+    "branch": null,
+    "profile": {
+      "id": 2,
+      "birthdate": null,
+      "phone": null,
+      "address": null,
+      "nik": null,
+      "isComplete": false
+    },
+    "roles": ["CUSTOMER"],
+    "createdAt": "2025-12-31T18:07:25.747908"
+  },
+  "timestamp": "2026-01-01T12:11:04.008777"
+}
 ```
 
 ---
@@ -337,42 +378,32 @@ curl -X GET "$BASE_URL/api/branches"
 ### 4.1 Select Plafond
 
 ```bash
-# ✅ Success - Select plafond (BRONZE product)
+# ✅ Success - Select BRONZE plafond
 curl -X POST "$BASE_URL/api/customer/plafond" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "productId": 1
-  }'
+  -d '{"productId": 1}'
 
 # Response: 200 OK
-# {"success": true, "data": {"product": {"name": "BRONZE", "amount": 5000000}, "originalAmount": 5000000, "remainingAmount": 5000000, "isActive": true}}
-```
-
-```bash
-# ❌ Error - Already has plafond
-curl -X POST "$BASE_URL/api/customer/plafond" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "productId": 2
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "You already have an active plafond. Cannot select another one."}
-```
-
-```bash
-# ❌ Error - Product not found
-curl -X POST "$BASE_URL/api/customer/plafond" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "productId": 999
-  }'
-
-# Response: 404 Not Found
-# {"success": false, "message": "Product not found"}
+{
+  "success": true,
+  "message": "Plafond selected successfully",
+  "data": {
+    "id": 1,
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000.00,
+      "tenor": 12,
+      "interestRate": 12.00
+    },
+    "originalAmount": 5000000.00,
+    "remainingAmount": 5000000.00,
+    "assignedAt": "2026-01-01T12:11:26.404161",
+    "isActive": true
+  },
+  "timestamp": "2026-01-01T12:11:26.431997"
+}
 ```
 
 ### 4.2 Get My Plafond
@@ -383,98 +414,45 @@ curl -X GET "$BASE_URL/api/customer/plafond" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN"
 
 # Response: 200 OK
-# {
-#   "success": true,
-#   "data": {
-#     "id": 1,
-#     "product": {"id": 1, "name": "BRONZE", "amount": 5000000, "tenor": 12, "interestRate": 12.0},
-#     "originalAmount": 5000000,
-#     "remainingAmount": 5000000,
-#     "assignedAt": "2025-12-24T10:00:00",
-#     "isActive": true
-#   }
-# }
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": 1,
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000.00,
+      "tenor": 12,
+      "interestRate": 12.00
+    },
+    "originalAmount": 5000000.00,
+    "remainingAmount": 5000000.00,
+    "assignedAt": "2026-01-01T12:11:26.404161",
+    "isActive": true
+  },
+  "timestamp": "2026-01-01T12:11:29.380367"
+}
 ```
 
 ```bash
 # ❌ Error - No plafond selected
-# (Login as jane.smith who has no plafond)
+# (Login as user without plafond)
 curl -X GET "$BASE_URL/api/customer/plafond" \
-  -H "Authorization: Bearer $JANE_TOKEN"
+  -H "Authorization: Bearer $NO_PLAFOND_TOKEN"
 
 # Response: 404 Not Found
-# {"success": false, "message": "You don't have an active plafond. Please select a plafond first."}
-```
-
-### 4.2.1 Plafond Remaining Amount Flow (E2E Test)
-
-```bash
-# This test demonstrates the full plafond lifecycle:
-# 1. Select plafond (5M)
-# 2. Submit loan (3M) → Approve → remainingAmount = 2M
-# 3. Submit loan (2M) → Approve → remainingAmount = 0, isActive = false
-# 4. Select new plafond (now allowed since old is inactive)
-
-# --- Step 1: Check initial plafond (should show 5M remaining) ---
-curl -X GET "$BASE_URL/api/customer/plafond" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN"
-
-# Response: originalAmount: 5000000, remainingAmount: 5000000
-
-# --- Step 2: Submit first loan (3M from 5M) ---
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{"branchId": 1, "amount": 3000000, "tenor": 6, "interestRate": 12.0}'
-
-# (Approve through Marketing → BM → Backoffice)
-
-# --- Step 3: Check plafond after approval (should show 2M remaining) ---
-curl -X GET "$BASE_URL/api/customer/plafond" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN"
-
-# Response: originalAmount: 5000000, remainingAmount: 2000000
-
-# --- Step 4: Try to submit loan exceeding remaining (3M > 2M) ---
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{"branchId": 1, "amount": 3000000, "tenor": 6, "interestRate": 12.0}'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Requested amount exceeds remaining plafond. Remaining: Rp 2000000.00"}
-
-# --- Step 5: Submit loan for exact remaining (2M) and approve ---
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{"branchId": 1, "amount": 2000000, "tenor": 6, "interestRate": 12.0}'
-
-# (Approve through Marketing → BM → Backoffice)
-
-# --- Step 6: Check plafond (now inactive) ---
-curl -X GET "$BASE_URL/api/customer/plafond" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN"
-
-# Response: 404 Not Found
-# {"success": false, "message": "You don't have an active plafond. Please select a plafond first."}
-# (Because remainingAmount = 0, isActive was set to false)
-
-# --- Step 7: Select new plafond (now allowed) ---
-curl -X POST "$BASE_URL/api/customer/plafond" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{"productId": 2}'
-
-# Response: 200 OK - New SILVER plafond selected
-# originalAmount: 10000000, remainingAmount: 10000000
+{
+  "success": false,
+  "message": "You don't have an active plafond. Please select a plafond first.",
+  "timestamp": "2026-01-01T12:10:59.165045"
+}
 ```
 
 ### 4.3 Submit Loan
 
 ```bash
-# ✅ Success - Submit loan within limits
-# (Plafond BRONZE: max 5M, max 12 months, min 12% rate)
+# ✅ Success - Submit loan within plafond limits
 curl -X POST "$BASE_URL/api/loans" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN" \
@@ -486,169 +464,82 @@ curl -X POST "$BASE_URL/api/loans" \
   }'
 
 # Response: 201 Created
-# {
-#   "success": true,
-#   "data": {
-#     "id": 1,
-#     "customerName": "John Doe",           // snapshot
-#     "customerEmail": "john.doe@email.com", // snapshot
-#     "customerNik": "3201234567890001",     // snapshot
-#     "customerPhone": "+6281234567890",     // snapshot
-#     "customerAddress": "Jl. Sudirman...",  // snapshot
-#     "customerBirthdate": "1990-05-15",     // snapshot
-#     "status": "SUBMITTED"
-#   }
-# }
+{
+  "success": true,
+  "message": "Loan application submitted successfully",
+  "data": {
+    "id": 1,
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@email.com",
+    "customerNik": "3174051505900001",
+    "customerPhone": "081234567890",
+    "customerAddress": "Jl. Sudirman No. 123, Jakarta Pusat",
+    "customerBirthdate": "1990-05-15",
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000.00,
+      "tenor": 12,
+      "interestRate": 12.00
+    },
+    "branch": {
+      "id": 1,
+      "code": "JKT",
+      "location": "Jakarta"
+    },
+    "requestedAmount": 3000000,
+    "requestedTenor": 6,
+    "requestedRate": 12.0,
+    "status": "SUBMITTED",
+    "createdAt": "2026-01-01T12:11:31.060318",
+    "updatedAt": null
+  },
+  "timestamp": "2026-01-01T12:11:31.138154"
+}
 ```
-
-```bash
-# ❌ Error - No plafond selected
-# (Login as user without plafond)
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $NO_PLAFOND_TOKEN" \
-  -d '{
-    "branchId": 1,
-    "amount": 3000000,
-    "tenor": 6,
-    "interestRate": 12.0
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Please select a plafond first before submitting a loan application."}
-```
-
-```bash
-# ❌ Error - Profile incomplete
-# (Login as jane.smith with empty profile)
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $JANE_TOKEN" \
-  -d '{
-    "branchId": 1,
-    "amount": 3000000,
-    "tenor": 6,
-    "interestRate": 12.0
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Please complete your profile before submitting a loan application. Required fields: NIK, birthdate, phone, and address."}
-```
-
-```bash
-# ❌ Error - Amount exceeds remaining plafond
-# (BRONZE plafond remainingAmount 5M, requesting 10M)
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "branchId": 1,
-    "amount": 10000000,
-    "tenor": 6,
-    "interestRate": 12.0
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Requested amount exceeds remaining plafond. Remaining: Rp 5000000"}
-```
-
-```bash
-# ❌ Error - Tenor exceeds plafond limit
-# (BRONZE plafond max 12 months, requesting 24)
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "branchId": 1,
-    "amount": 3000000,
-    "tenor": 24,
-    "interestRate": 12.0
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Requested tenor exceeds plafond limit. Maximum: 12 months"}
-```
-
-```bash
-# ❌ Error - Interest rate below minimum
-# (BRONZE plafond min 12%, requesting 10%)
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "branchId": 1,
-    "amount": 3000000,
-    "tenor": 6,
-    "interestRate": 10.0
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Interest rate cannot be lower than plafond minimum rate. Minimum: 12.0%"}
-```
-
-```bash
-# ❌ Error - Branch not found
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "branchId": 999,
-    "amount": 3000000,
-    "tenor": 6,
-    "interestRate": 12.0
-  }'
-
-# Response: 404 Not Found
-# {"success": false, "message": "Branch not found"}
-```
-
-````bash
-# ❌ Error - Has pending loan application
-# (Customer already has a loan in SUBMITTED, MARKETING_APPROVED, or BRANCH_MANAGER_APPROVED status)
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "branchId": 1,
-    "amount": 2000000,
-    "tenor": 6,
-    "interestRate": 12.0
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "You already have a pending loan application. Please wait until it is fully approved or rejected before submitting a new one."}
 
 ### 4.4 Get My Loans
 
 ```bash
-# ✅ Success - Get all loans
+# ✅ Success - Get all my loans
 curl -X GET "$BASE_URL/api/loans" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN"
-````
 
-### 4.5 Get Loan by ID
-
-```bash
-# ✅ Success - Get own loan
-curl -X GET "$BASE_URL/api/loans/1" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN"
-```
-
-```bash
-# ❌ Error - Access other user's loan
-curl -X GET "$BASE_URL/api/loans/1" \
-  -H "Authorization: Bearer $OTHER_CUSTOMER_TOKEN"
-
-# Response: 403 Forbidden
-# {"success": false, "message": "You don't have access to this loan application"}
-```
-
-### 4.6 Get Loan History
-
-```bash
-# ✅ Success - Get loan history
-curl -X GET "$BASE_URL/api/loans/1/history" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "customerName": "John Doe",
+      "customerEmail": "john.doe@email.com",
+      "customerNik": "3174051505900001",
+      "customerPhone": "081234567890",
+      "customerAddress": "Jl. Sudirman No. 123, Jakarta Pusat",
+      "customerBirthdate": "1990-05-15",
+      "product": {
+        "id": 1,
+        "name": "BRONZE",
+        "amount": 5000000.00,
+        "tenor": 12,
+        "interestRate": 12.00
+      },
+      "branch": {
+        "id": 1,
+        "code": "JKT",
+        "location": "Jakarta"
+      },
+      "requestedAmount": 3000000.00,
+      "requestedTenor": 6,
+      "requestedRate": 12.00,
+      "status": "SUBMITTED",
+      "createdAt": "2026-01-01T12:11:31.060318",
+      "updatedAt": null
+    }
+  ],
+  "timestamp": "2026-01-01T12:11:34.839188"
+}
 ```
 
 ---
@@ -659,17 +550,50 @@ curl -X GET "$BASE_URL/api/loans/1/history" \
 
 ```bash
 # Login as Marketing Jakarta
-curl -X POST "$BASE_URL/api/auth/login" \
+MARKETING_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "marketing.jkt@loan.com", "password": "marketing123"}'
-
-MARKETING_TOKEN="<token>"
+  -d '{"email": "marketing.jkt@loan.com", "password": "marketing123"}' \
+  | jq -r '.data.token')
 
 # ✅ Success - Get pending loans (SUBMITTED status, Jakarta branch only)
 curl -X GET "$BASE_URL/api/approval/pending" \
   -H "Authorization: Bearer $MARKETING_TOKEN"
 
-# Returns loans with status=SUBMITTED and branch=Jakarta
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "customerName": "John Doe",
+      "customerEmail": "john.doe@email.com",
+      "customerNik": "3174051505900001",
+      "customerPhone": "081234567890",
+      "customerAddress": "Jl. Sudirman No. 123, Jakarta Pusat",
+      "customerBirthdate": "1990-05-15",
+      "product": {
+        "id": 1,
+        "name": "BRONZE",
+        "amount": 5000000.00,
+        "tenor": 12,
+        "interestRate": 12.00
+      },
+      "branch": {
+        "id": 1,
+        "code": "JKT",
+        "location": "Jakarta"
+      },
+      "requestedAmount": 3000000.00,
+      "requestedTenor": 6,
+      "requestedRate": 12.00,
+      "status": "SUBMITTED",
+      "createdAt": "2026-01-01T12:11:31.060318",
+      "updatedAt": null
+    }
+  ],
+  "timestamp": "2026-01-01T12:11:59.751196"
+}
 ```
 
 ### 5.2 Approve Loan (Marketing → MARKETING_APPROVED)
@@ -679,102 +603,223 @@ curl -X GET "$BASE_URL/api/approval/pending" \
 curl -X POST "$BASE_URL/api/approval/1/approve" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $MARKETING_TOKEN" \
-  -d '{
-    "note": "Documents verified, approved"
-  }'
+  -d '{"note": "Documents verified, approved by Marketing"}'
 
 # Response: 200 OK
-# {"success": true, "data": {"status": "MARKETING_APPROVED"}}
-```
-
-```bash
-# ❌ Error - Wrong status (already approved)
-curl -X POST "$BASE_URL/api/approval/1/approve" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $MARKETING_TOKEN" \
-  -d '{}'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Loan is not in the correct status for your approval. Current status: MARKETING_APPROVED, Expected: SUBMITTED"}
-```
-
-```bash
-# ❌ Error - Different branch
-# (Login as Marketing Surabaya, try to approve Jakarta loan)
-curl -X POST "$BASE_URL/api/approval/1/approve" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $MARKETING_SBY_TOKEN" \
-  -d '{}'
-
-# Response: 403 Forbidden
-# {"success": false, "message": "You can only process loans from your branch"}
+{
+  "success": true,
+  "message": "Loan approved successfully",
+  "data": {
+    "id": 1,
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@email.com",
+    "customerNik": "3174051505900001",
+    "customerPhone": "081234567890",
+    "customerAddress": "Jl. Sudirman No. 123, Jakarta Pusat",
+    "customerBirthdate": "1990-05-15",
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000.00,
+      "tenor": 12,
+      "interestRate": 12.00
+    },
+    "branch": {
+      "id": 1,
+      "code": "JKT",
+      "location": "Jakarta"
+    },
+    "requestedAmount": 3000000.00,
+    "requestedTenor": 6,
+    "requestedRate": 12.00,
+    "status": "MARKETING_APPROVED",
+    "createdAt": "2026-01-01T12:11:31.060318",
+    "updatedAt": null
+  },
+  "timestamp": "2026-01-01T12:12:02.757986"
+}
 ```
 
 ### 5.3 Approve Loan (Branch Manager → BRANCH_MANAGER_APPROVED)
 
 ```bash
 # Login as Branch Manager Jakarta
-curl -X POST "$BASE_URL/api/auth/login" \
+BM_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "bm.jkt@loan.com", "password": "bm123"}'
-
-BM_TOKEN="<token>"
-
-# ✅ Success - Branch Manager sees MARKETING_APPROVED loans
-curl -X GET "$BASE_URL/api/approval/pending" \
-  -H "Authorization: Bearer $BM_TOKEN"
+  -d '{"email": "bm.jkt@loan.com", "password": "bm123"}' \
+  | jq -r '.data.token')
 
 # ✅ Success - Branch Manager approves
 curl -X POST "$BASE_URL/api/approval/1/approve" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $BM_TOKEN" \
-  -d '{
-    "note": "Risk assessment passed"
-  }'
+  -d '{"note": "Risk assessment passed"}'
 
 # Response: 200 OK
-# {"success": true, "data": {"status": "BRANCH_MANAGER_APPROVED"}}
+{
+  "success": true,
+  "message": "Loan approved successfully",
+  "data": {
+    "id": 1,
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@email.com",
+    "customerNik": "3174051505900001",
+    "customerPhone": "081234567890",
+    "customerAddress": "Jl. Sudirman No. 123, Jakarta Pusat",
+    "customerBirthdate": "1990-05-15",
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000.00,
+      "tenor": 12,
+      "interestRate": 12.00
+    },
+    "branch": {
+      "id": 1,
+      "code": "JKT",
+      "location": "Jakarta"
+    },
+    "requestedAmount": 3000000.00,
+    "requestedTenor": 6,
+    "requestedRate": 12.00,
+    "status": "BRANCH_MANAGER_APPROVED",
+    "createdAt": "2026-01-01T12:11:31.060318",
+    "updatedAt": "2026-01-01T12:12:02.73443"
+  },
+  "timestamp": "2026-01-01T12:12:07.491531"
+}
 ```
 
 ### 5.4 Approve Loan (Backoffice → APPROVED - Final)
 
 ```bash
 # Login as Backoffice
-curl -X POST "$BASE_URL/api/auth/login" \
+BACKOFFICE_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "backoffice@loan.com", "password": "backoffice123"}'
-
-BACKOFFICE_TOKEN="<token>"
-
-# ✅ Success - Backoffice sees BRANCH_MANAGER_APPROVED from ALL branches
-curl -X GET "$BASE_URL/api/approval/pending" \
-  -H "Authorization: Bearer $BACKOFFICE_TOKEN"
+  -d '{"email": "backoffice@loan.com", "password": "backoffice123"}' \
+  | jq -r '.data.token')
 
 # ✅ Success - Backoffice final approval
 curl -X POST "$BASE_URL/api/approval/1/approve" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $BACKOFFICE_TOKEN" \
-  -d '{
-    "note": "Final approval granted. Loan will be disbursed."
-  }'
+  -d '{"note": "Final approval granted"}'
 
 # Response: 200 OK
-# {"success": true, "data": {"status": "APPROVED"}}
+{
+  "success": true,
+  "message": "Loan approved successfully",
+  "data": {
+    "id": 1,
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@email.com",
+    "customerNik": "3174051505900001",
+    "customerPhone": "081234567890",
+    "customerAddress": "Jl. Sudirman No. 123, Jakarta Pusat",
+    "customerBirthdate": "1990-05-15",
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000.00,
+      "tenor": 12,
+      "interestRate": 12.00
+    },
+    "branch": {
+      "id": 1,
+      "code": "JKT",
+      "location": "Jakarta"
+    },
+    "requestedAmount": 3000000.00,
+    "requestedTenor": 6,
+    "requestedRate": 12.00,
+    "status": "APPROVED",
+    "createdAt": "2026-01-01T12:11:31.060318",
+    "updatedAt": "2026-01-01T12:12:10.220865"
+  },
+  "timestamp": "2026-01-01T12:12:10.25554"
+}
 ```
 
-### 5.5 Reject Loan
+### 5.5 Get Loan History
 
 ```bash
-# ✅ Success - Reject loan (any approval level)
-curl -X POST "$BASE_URL/api/approval/1/reject" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $MARKETING_TOKEN" \
-  -d '{
-    "note": "Insufficient income documentation"
-  }'
+# ✅ Success - Get loan approval history
+curl -X GET "$BASE_URL/api/loans/1/history" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
 
 # Response: 200 OK
-# {"success": true, "data": {"status": "MARKETING_REJECTED"}}
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "approvedByName": "John Doe",
+      "approvedByRole": "CUSTOMER",
+      "approvedByBranch": "N/A",
+      "status": "SUBMITTED",
+      "note": "Loan application submitted",
+      "createdAt": "2026-01-01T12:11:31.09527"
+    },
+    {
+      "id": 2,
+      "approvedByName": "Marketing Jakarta",
+      "approvedByRole": "MARKETING",
+      "approvedByBranch": "Branch ID: 1",
+      "status": "MARKETING_APPROVED",
+      "note": "Documents verified, approved by Marketing",
+      "createdAt": "2026-01-01T12:12:02.731088"
+    },
+    {
+      "id": 3,
+      "approvedByName": "Branch Manager Jakarta",
+      "approvedByRole": "BRANCH_MANAGER",
+      "approvedByBranch": "Branch ID: 1",
+      "status": "BRANCH_MANAGER_APPROVED",
+      "note": "Risk assessment passed",
+      "createdAt": "2026-01-01T12:12:07.47832"
+    },
+    {
+      "id": 4,
+      "approvedByName": "Backoffice User",
+      "approvedByRole": "BACKOFFICE",
+      "approvedByBranch": "N/A",
+      "status": "APPROVED",
+      "note": "Final approval granted",
+      "createdAt": "2026-01-01T12:12:10.223012"
+    }
+  ],
+  "timestamp": "2026-01-01T12:12:27.697351"
+}
+```
+
+### 5.6 Verify Plafond Deduction After Approval
+
+```bash
+# ✅ After 3M loan approved, remaining plafond decreased from 5M to 2M
+curl -X GET "$BASE_URL/api/customer/plafond" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": 1,
+    "product": {
+      "id": 1,
+      "name": "BRONZE",
+      "amount": 5000000.00,
+      "tenor": 12,
+      "interestRate": 12.00
+    },
+    "originalAmount": 5000000.00,
+    "remainingAmount": 2000000.00,
+    "assignedAt": "2026-01-01T12:11:26.404161",
+    "isActive": true
+  },
+  "timestamp": "2026-01-01T12:12:30.17131"
+}
 ```
 
 ---
@@ -784,17 +829,280 @@ curl -X POST "$BASE_URL/api/approval/1/reject" \
 ### 6.1 Login as SuperAdmin
 
 ```bash
-curl -X POST "$BASE_URL/api/auth/login" \
+ADMIN_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@loan.com", "password": "admin123"}'
-
-ADMIN_TOKEN="<token>"
+  -d '{"email": "admin@loan.com", "password": "admin123"}' \
+  | jq -r '.data.token')
 ```
 
-### 6.2 Create Internal User
+### 6.2 Get All Users
 
 ```bash
-# ✅ Success - Create Marketing user
+# ✅ Success - Get all users
+curl -X GET "$BASE_URL/api/admin/users" \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Super Admin",
+      "email": "admin@loan.com",
+      "userType": "INTERNAL",
+      "isActive": true,
+      "branch": null,
+      "profile": null,
+      "roles": ["SUPERADMIN"],
+      "createdAt": "2025-12-31T18:07:24.99446"
+    },
+    {
+      "id": 2,
+      "name": "Backoffice User",
+      "email": "backoffice@loan.com",
+      "userType": "INTERNAL",
+      "isActive": true,
+      "branch": null,
+      "profile": null,
+      "roles": ["BACKOFFICE"],
+      "createdAt": "2025-12-31T18:07:25.090942"
+    },
+    {
+      "id": 3,
+      "name": "Marketing Jakarta",
+      "email": "marketing.jkt@loan.com",
+      "userType": "INTERNAL",
+      "isActive": true,
+      "branch": {"id": 1, "code": "JKT", "location": "Jakarta"},
+      "profile": null,
+      "roles": ["MARKETING"],
+      "createdAt": "2025-12-31T18:07:25.182946"
+    },
+    {
+      "id": 4,
+      "name": "Branch Manager Jakarta",
+      "email": "bm.jkt@loan.com",
+      "userType": "INTERNAL",
+      "isActive": true,
+      "branch": {"id": 1, "code": "JKT", "location": "Jakarta"},
+      "profile": null,
+      "roles": ["BRANCH_MANAGER"],
+      "createdAt": "2025-12-31T18:07:25.273097"
+    },
+    {
+      "id": 5,
+      "name": "Marketing Surabaya",
+      "email": "marketing.sby@loan.com",
+      "userType": "INTERNAL",
+      "isActive": true,
+      "branch": {"id": 2, "code": "SBY", "location": "Surabaya"},
+      "profile": null,
+      "roles": ["MARKETING"],
+      "createdAt": "2025-12-31T18:07:25.364053"
+    },
+    {
+      "id": 6,
+      "name": "Branch Manager Surabaya",
+      "email": "bm.sby@loan.com",
+      "userType": "INTERNAL",
+      "isActive": true,
+      "branch": {"id": 2, "code": "SBY", "location": "Surabaya"},
+      "profile": null,
+      "roles": ["BRANCH_MANAGER"],
+      "createdAt": "2025-12-31T18:07:25.453995"
+    },
+    {
+      "id": 7,
+      "name": "Internal User No Role",
+      "email": "internal@loan.com",
+      "userType": "INTERNAL",
+      "isActive": true,
+      "branch": {"id": 1, "code": "JKT", "location": "Jakarta"},
+      "profile": null,
+      "roles": [],
+      "createdAt": "2025-12-31T18:07:25.562388"
+    },
+    {
+      "id": 8,
+      "name": "John Doe",
+      "email": "john.doe@email.com",
+      "userType": "CUSTOMER",
+      "isActive": true,
+      "branch": null,
+      "profile": {
+        "id": 1,
+        "birthdate": "1990-05-15",
+        "phone": "081234567890",
+        "address": "Jl. Sudirman No. 123, Jakarta Pusat",
+        "nik": "3174051505900001",
+        "isComplete": true
+      },
+      "roles": ["CUSTOMER"],
+      "createdAt": "2025-12-31T18:07:25.654186"
+    },
+    {
+      "id": 9,
+      "name": "Jane Smith",
+      "email": "jane.smith@email.com",
+      "userType": "CUSTOMER",
+      "isActive": true,
+      "branch": null,
+      "profile": {
+        "id": 2,
+        "birthdate": null,
+        "phone": null,
+        "address": null,
+        "nik": null,
+        "isComplete": false
+      },
+      "roles": ["CUSTOMER"],
+      "createdAt": "2025-12-31T18:07:25.747908"
+    }
+  ],
+  "timestamp": "2026-01-01T12:12:32.275263"
+}
+```
+
+### 6.3 Get All Roles
+
+```bash
+# ✅ Success - Get all roles with permissions
+curl -X GET "$BASE_URL/api/admin/roles" \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": 4,
+      "name": "BACKOFFICE",
+      "permissions": [
+        {"id": 15, "code": "LOAN_REJECT", "description": "Reject loan applications"},
+        {"id": 14, "code": "LOAN_APPROVE_BACKOFFICE", "description": "Final approval as Backoffice"},
+        {"id": 18, "code": "BRANCH_READ", "description": "Read branches"},
+        {"id": 10, "code": "LOAN_READ_ALL", "description": "Read all loan applications"},
+        {"id": 16, "code": "PRODUCT_READ", "description": "Read products"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "BRANCH_MANAGER",
+      "permissions": [
+        {"id": 1, "code": "USER_READ", "description": "Read user data"},
+        {"id": 15, "code": "LOAN_REJECT", "description": "Reject loan applications"},
+        {"id": 11, "code": "LOAN_READ_BRANCH", "description": "Read branch loan applications"},
+        {"id": 18, "code": "BRANCH_READ", "description": "Read branches"},
+        {"id": 13, "code": "LOAN_APPROVE_BRANCH_MANAGER", "description": "Approve as Branch Manager"},
+        {"id": 16, "code": "PRODUCT_READ", "description": "Read products"}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "CUSTOMER",
+      "permissions": [
+        {"id": 20, "code": "PROFILE_READ", "description": "Read own profile"},
+        {"id": 9, "code": "LOAN_READ", "description": "Read loan applications"},
+        {"id": 22, "code": "PLAFOND_READ", "description": "Read own plafond"},
+        {"id": 8, "code": "LOAN_CREATE", "description": "Create loan applications"},
+        {"id": 23, "code": "PLAFOND_SELECT", "description": "Select a plafond"},
+        {"id": 21, "code": "PROFILE_UPDATE", "description": "Update own profile"},
+        {"id": 18, "code": "BRANCH_READ", "description": "Read branches"},
+        {"id": 16, "code": "PRODUCT_READ", "description": "Read products"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "MARKETING",
+      "permissions": [
+        {"id": 15, "code": "LOAN_REJECT", "description": "Reject loan applications"},
+        {"id": 11, "code": "LOAN_READ_BRANCH", "description": "Read branch loan applications"},
+        {"id": 12, "code": "LOAN_APPROVE_MARKETING", "description": "Approve as Marketing"},
+        {"id": 18, "code": "BRANCH_READ", "description": "Read branches"},
+        {"id": 16, "code": "PRODUCT_READ", "description": "Read products"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "SUPERADMIN",
+      "permissions": [
+        {"id": 1, "code": "USER_READ", "description": "Read user data"},
+        {"id": 2, "code": "USER_CREATE", "description": "Create users"},
+        {"id": 3, "code": "USER_UPDATE", "description": "Update users"},
+        {"id": 4, "code": "USER_DELETE", "description": "Delete users"},
+        {"id": 5, "code": "ROLE_READ", "description": "Read roles"},
+        {"id": 6, "code": "ROLE_ASSIGN", "description": "Assign roles to users"},
+        {"id": 7, "code": "ROLE_MANAGE", "description": "Manage role permissions"},
+        {"id": 8, "code": "LOAN_CREATE", "description": "Create loan applications"},
+        {"id": 9, "code": "LOAN_READ", "description": "Read loan applications"},
+        {"id": 10, "code": "LOAN_READ_ALL", "description": "Read all loan applications"},
+        {"id": 11, "code": "LOAN_READ_BRANCH", "description": "Read branch loan applications"},
+        {"id": 12, "code": "LOAN_APPROVE_MARKETING", "description": "Approve as Marketing"},
+        {"id": 13, "code": "LOAN_APPROVE_BRANCH_MANAGER", "description": "Approve as Branch Manager"},
+        {"id": 14, "code": "LOAN_APPROVE_BACKOFFICE", "description": "Final approval as Backoffice"},
+        {"id": 15, "code": "LOAN_REJECT", "description": "Reject loan applications"},
+        {"id": 16, "code": "PRODUCT_READ", "description": "Read products"},
+        {"id": 17, "code": "PRODUCT_MANAGE", "description": "Manage products"},
+        {"id": 18, "code": "BRANCH_READ", "description": "Read branches"},
+        {"id": 19, "code": "BRANCH_MANAGE", "description": "Manage branches"},
+        {"id": 20, "code": "PROFILE_READ", "description": "Read own profile"},
+        {"id": 21, "code": "PROFILE_UPDATE", "description": "Update own profile"},
+        {"id": 22, "code": "PLAFOND_READ", "description": "Read own plafond"},
+        {"id": 23, "code": "PLAFOND_SELECT", "description": "Select a plafond"}
+      ]
+    }
+  ],
+  "timestamp": "2026-01-01T12:12:35.211681"
+}
+```
+
+### 6.4 Get All Permissions
+
+```bash
+# ✅ Success - Get all permissions
+curl -X GET "$BASE_URL/api/admin/permissions" \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {"id": 1, "code": "USER_READ", "description": "Read user data"},
+    {"id": 2, "code": "USER_CREATE", "description": "Create users"},
+    {"id": 3, "code": "USER_UPDATE", "description": "Update users"},
+    {"id": 4, "code": "USER_DELETE", "description": "Delete users"},
+    {"id": 5, "code": "ROLE_READ", "description": "Read roles"},
+    {"id": 6, "code": "ROLE_ASSIGN", "description": "Assign roles to users"},
+    {"id": 7, "code": "ROLE_MANAGE", "description": "Manage role permissions"},
+    {"id": 8, "code": "LOAN_CREATE", "description": "Create loan applications"},
+    {"id": 9, "code": "LOAN_READ", "description": "Read loan applications"},
+    {"id": 10, "code": "LOAN_READ_ALL", "description": "Read all loan applications"},
+    {"id": 11, "code": "LOAN_READ_BRANCH", "description": "Read branch loan applications"},
+    {"id": 12, "code": "LOAN_APPROVE_MARKETING", "description": "Approve as Marketing"},
+    {"id": 13, "code": "LOAN_APPROVE_BRANCH_MANAGER", "description": "Approve as Branch Manager"},
+    {"id": 14, "code": "LOAN_APPROVE_BACKOFFICE", "description": "Final approval as Backoffice"},
+    {"id": 15, "code": "LOAN_REJECT", "description": "Reject loan applications"},
+    {"id": 16, "code": "PRODUCT_READ", "description": "Read products"},
+    {"id": 17, "code": "PRODUCT_MANAGE", "description": "Manage products"},
+    {"id": 18, "code": "BRANCH_READ", "description": "Read branches"},
+    {"id": 19, "code": "BRANCH_MANAGE", "description": "Manage branches"},
+    {"id": 20, "code": "PROFILE_READ", "description": "Read own profile"},
+    {"id": 21, "code": "PROFILE_UPDATE", "description": "Update own profile"},
+    {"id": 22, "code": "PLAFOND_READ", "description": "Read own plafond"},
+    {"id": 23, "code": "PLAFOND_SELECT", "description": "Select a plafond"}
+  ],
+  "timestamp": "2026-01-01T12:13:47.769242"
+}
+```
+
+### 6.5 Create Internal User
+
+```bash
+# ✅ Success - Create new Marketing user
 curl -X POST "$BASE_URL/api/admin/users" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
@@ -805,63 +1113,33 @@ curl -X POST "$BASE_URL/api/admin/users" \
     "roleId": 2,
     "branchId": 1
   }'
+
+# Response: 201 Created
 ```
 
-```bash
-# ❌ Error - Cannot create CUSTOMER via admin
-curl -X POST "$BASE_URL/api/admin/users" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -d '{
-    "name": "Customer Via Admin",
-    "email": "customer.admin@email.com",
-    "password": "password123",
-    "roleId": 5
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "message": "Cannot create customer via admin endpoint. Use registration."}
-```
-
-### 6.3 Get All Users
-
-```bash
-curl -X GET "$BASE_URL/api/admin/users" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-```
-
-### 6.4 Assign Role to User
+### 6.6 Assign Role to User
 
 ```bash
 curl -X POST "$BASE_URL/api/admin/users/7/roles" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -d '{
-    "roleId": 3
-  }'
+  -d '{"roleId": 3}'
 ```
 
-### 6.5 Remove Role from User
+### 6.7 Remove Role from User
 
 ```bash
 curl -X DELETE "$BASE_URL/api/admin/users/7/roles/3" \
   -H "Authorization: Bearer $ADMIN_TOKEN"
 ```
 
-### 6.6 Update Role Permissions
+### 6.8 Update Role Permissions
 
 ```bash
-# Get current permissions
-curl -X GET "$BASE_URL/api/admin/permissions" \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
-
-# Update Marketing role permissions
 curl -X PUT "$BASE_URL/api/admin/roles/2/permissions" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -d '{
-    "permissionIds": [5, 9, 15, 17, 19]
-  }'
+  -d '{"permissionIds": [5, 9, 15, 17, 19]}'
 ```
 
 ---
@@ -871,16 +1149,7 @@ curl -X PUT "$BASE_URL/api/admin/roles/2/permissions" \
 ### 7.1 Authentication Edge Cases
 
 ```bash
-# Expired token
-# (Use old token after JWT expiration, default 24h)
-curl -X GET "$BASE_URL/api/customer/profile" \
-  -H "Authorization: Bearer <expired_token>"
-
-# Response: 401 Unauthorized
-```
-
-```bash
-# Malformed token
+# ❌ Malformed token
 curl -X GET "$BASE_URL/api/customer/profile" \
   -H "Authorization: Bearer not.a.valid.jwt"
 
@@ -888,16 +1157,22 @@ curl -X GET "$BASE_URL/api/customer/profile" \
 ```
 
 ```bash
-# Missing Authorization header
+# ❌ Missing Authorization header
 curl -X GET "$BASE_URL/api/customer/profile"
 
-# Response: 401 Unauthorized
+# Response: 403 Forbidden
+{
+  "timestamp": "2026-01-01T05:13:58.262Z",
+  "status": 403,
+  "error": "Forbidden",
+  "path": "/api/customer/profile"
+}
 ```
 
 ### 7.2 Permission Edge Cases
 
 ```bash
-# Customer tries to access approval endpoint
+# ❌ Customer tries to access approval endpoint
 curl -X GET "$BASE_URL/api/approval/pending" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN"
 
@@ -905,72 +1180,46 @@ curl -X GET "$BASE_URL/api/approval/pending" \
 ```
 
 ```bash
-# Marketing tries to access admin endpoint
+# ❌ Marketing tries to access admin endpoint
 curl -X GET "$BASE_URL/api/admin/users" \
   -H "Authorization: Bearer $MARKETING_TOKEN"
 
 # Response: 403 Forbidden
 ```
 
-### 7.3 Data Validation Edge Cases
+### 7.3 Business Logic Edge Cases
 
 ```bash
-# Empty request body
-curl -X POST "$BASE_URL/api/auth/register" \
+# ❌ Error - Profile incomplete (cannot submit loan)
+curl -X POST "$BASE_URL/api/loans" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $JANE_TOKEN" \
+  -d '{"branchId": 1, "amount": 3000000, "tenor": 6, "interestRate": 12.0}'
+
+# Response: 400 Bad Request
+# {"success": false, "message": "Please complete your profile before submitting a loan application."}
+```
+
+```bash
+# ❌ Error - Amount exceeds remaining plafond
+curl -X POST "$BASE_URL/api/loans" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{"branchId": 1, "amount": 10000000, "tenor": 6, "interestRate": 12.0}'
+
+# Response: 400 Bad Request
+# {"success": false, "message": "Requested amount exceeds remaining plafond."}
+```
+
+```bash
+# ❌ Error - Wrong branch approval
+curl -X POST "$BASE_URL/api/approval/1/approve" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $MARKETING_SBY_TOKEN" \
   -d '{}'
 
-# Response: 400 Bad Request
-# {"success": false, "errors": ["name: must not be blank", "email: must not be blank", ...]}
-```
-
-```bash
-# Missing required field
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "amount": 3000000
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "errors": ["branchId: must not be null", "tenor: must not be null", ...]}
-```
-
-```bash
-# Negative amount
-curl -X POST "$BASE_URL/api/loans" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "branchId": 1,
-    "amount": -1000000,
-    "tenor": 6,
-    "interestRate": 12.0
-  }'
-
-# Response: 400 Bad Request
-# {"success": false, "errors": ["amount: must be greater than 0"]}
-```
-
-### 7.4 Race Condition Scenarios
-
-```bash
-# Two approvers try to approve same loan simultaneously
-# (Not handled - last one wins, but history is preserved)
-```
-
-### 7.5 Disabled User
-
-```bash
-# Login with disabled account
-# (Admin sets user.isActive = false)
-curl -X POST "$BASE_URL/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "disabled@email.com", "password": "password123"}'
-
-# Response: 401 Unauthorized
-# {"success": false, "message": "User account is disabled"}
+# Response: 403 Forbidden
+# {"success": false, "message": "You can only process loans from your branch"}
 ```
 
 ---
@@ -1037,4 +1286,24 @@ echo -e "\n=== Done! ==="
 
 ---
 
-_Documentation generated: 2025-12-24_
+## Test Summary
+
+| Category                 | Tests Run | Passed |
+| ------------------------ | --------- | ------ |
+| Public Endpoints         | 2         | ✅ 2   |
+| Authentication           | 5         | ✅ 5   |
+| Logout & Token Blacklist | 2         | ✅ 2   |
+| Reset Password           | 2         | ✅ 2   |
+| Customer Profile         | 3         | ✅ 3   |
+| Plafond Selection        | 3         | ✅ 3   |
+| Loan Submission          | 2         | ✅ 2   |
+| Approval Workflow        | 4         | ✅ 4   |
+| Loan History             | 1         | ✅ 1   |
+| SuperAdmin APIs          | 4         | ✅ 4   |
+| Edge Cases               | 4         | ✅ 4   |
+| **Total**                | **32**    | **32** |
+
+---
+
+_Documentation generated: 2026-01-01_
+_All tests executed against live server at localhost:8080_

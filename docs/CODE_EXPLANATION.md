@@ -748,6 +748,93 @@ protected void doFilterInternal(request, response, filterChain) {
 }
 ```
 
+### 2.8 Service: EmailService - Password Reset Email
+
+**Lokasi:** `service/EmailService.java`, `service/impl/EmailServiceImpl.java`
+
+**Alasan dibuat:**
+Mengirim email password reset menggunakan SMTP. Dipisahkan dari AuthService untuk separation of concerns dan agar bisa di-mock saat testing.
+
+**Interface:**
+
+```java
+public interface EmailService {
+    void sendPasswordResetEmail(String toEmail, String resetToken);
+}
+```
+
+**Implementation (EmailServiceImpl):**
+
+```java
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class EmailServiceImpl implements EmailService {
+
+    private final JavaMailSender mailSender;
+
+    @Value("${app.password-reset.base-url}")
+    private String resetBaseUrl;
+
+    @Override
+    public void sendPasswordResetEmail(String toEmail, String resetToken) {
+        log.info("Sending password reset email to: {}", toEmail);
+
+        String resetLink = resetBaseUrl + "?token=" + resetToken;
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setFrom("noreply@ehefin.com");
+            helper.setTo(toEmail);
+            helper.setSubject("🔐 Password Reset Request");
+            helper.setText(buildHtmlEmailBody(resetLink, resetToken), true);
+
+            mailSender.send(mimeMessage);
+            log.info("Password reset email sent successfully to: {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send password reset email to: {}", toEmail, e);
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+}
+```
+
+**Penjelasan:**
+
+| Component           | Deskripsi                                               |
+| ------------------- | ------------------------------------------------------- |
+| `JavaMailSender`    | Spring Boot auto-config dari `spring-boot-starter-mail` |
+| `MimeMessageHelper` | Untuk mengirim email HTML dengan proper encoding        |
+| `resetBaseUrl`      | Environment variable untuk frontend reset page URL      |
+| HTML Template       | Email dengan gradient header, button, dan token display |
+
+**Configuration (application.properties):**
+
+```properties
+# SMTP (Mailtrap for development)
+spring.mail.host=sandbox.smtp.mailtrap.io
+spring.mail.port=2525
+spring.mail.username=${MAIL_USERNAME}
+spring.mail.password=${MAIL_PASSWORD}
+
+# Password Reset
+app.password-reset.base-url=http://localhost:4200/reset-password
+app.password-reset.token-expiry-minutes=30
+```
+
+**Flow Integration dengan AuthService:**
+
+```
+POST /api/auth/forgot-password
+     → AuthService.forgotPassword(email)
+     → Generate UUID token
+     → Redis: SET password-reset:{token} {userId} EX 1800
+     → EmailService.sendPasswordResetEmail(email, token)  ← Email dikirim!
+     → Response: "If the email exists, a password reset link has been sent"
+```
+
 ---
 
 ## 3. Flow 2: Customer Profile
@@ -1641,4 +1728,4 @@ Customer selects SILVER (10jt)
 
 ---
 
-_Dokumentasi dibuat: 2025-12-24_
+_Dokumentasi dibuat: 2026-01-01_
