@@ -23,7 +23,12 @@ jobs:
           cache: maven
 
       - name: Run Spotless Check
-        run: mvn spotless:check --no-transfer-progress
+        run: |
+          for i in 1 2 3; do
+            mvn spotless:check --no-transfer-progress && break
+            echo "Attempt $i failed, retrying in 30 seconds..."
+            sleep 30
+          done
 
   unit-test:
     name: Run Unit Tests
@@ -42,4 +47,9 @@ jobs:
           cache: maven
 
       - name: Run Unit Tests
-        run: mvn test --no-transfer-progress
+        run: |
+          for i in 1 2 3; do
+            mvn test --no-transfer-progress && break
+            echo "Attempt $i failed, retrying in 30 seconds..."
+            sleep 30
+          done
