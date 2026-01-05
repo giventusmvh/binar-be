@@ -13,11 +13,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import lombok.Getter;
 
 /**
- * Controller for authentication operations. Handles customer registration, user
- * login, password
+ * Controller for authentication operations. Handles customer registration, user login, password
  * reset, and logout.
  */
 @RestController
