@@ -23,4 +23,4 @@ jobs:
           cache: maven
 
       - name: Run Spotless Check
-        run: ./mvnw spotless:check --no-transfer-progress
+        run: mvn spotless:check --no-transfer-progress
