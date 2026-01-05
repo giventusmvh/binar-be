@@ -1,14 +1,13 @@
 package com.gvn.binarbe.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.HashSet;
 import java.util.Set;
+import lombok.*;
 
 /**
- * Permission entity for granular access control.
- * Permissions are assigned to roles, not directly to users.
+ * Permission entity for granular access control. Permissions are assigned to roles, not directly to
+ * users.
  */
 @Entity
 @Table(name = "permissions")
@@ -19,17 +18,16 @@ import java.util.Set;
 @Builder
 public class Permission {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String code;
+  @Column(nullable = false, unique = true)
+  private String code;
 
-    @Column
-    private String description;
+  @Column private String description;
 
-    @ManyToMany(mappedBy = "permissions")
-    @Builder.Default
-    private Set<Role> roles = new HashSet<>();
+  @ManyToMany(mappedBy = "permissions")
+  @Builder.Default
+  private Set<Role> roles = new HashSet<>();
 }

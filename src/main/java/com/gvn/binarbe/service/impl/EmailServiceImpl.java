@@ -10,45 +10,43 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-/**
- * Implementation of EmailService for sending emails via SMTP.
- */
+/** Implementation of EmailService for sending emails via SMTP. */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender mailSender;
+  private final JavaMailSender mailSender;
 
-    @Value("${app.password-reset.base-url}")
-    private String resetBaseUrl;
+  @Value("${app.password-reset.base-url}")
+  private String resetBaseUrl;
 
-    @Override
-    public void sendPasswordResetEmail(String toEmail, String resetToken) {
-        log.info("Sending password reset email to: {}", toEmail);
+  @Override
+  public void sendPasswordResetEmail(String toEmail, String resetToken) {
+    log.info("Sending password reset email to: {}", toEmail);
 
-        String resetLink = resetBaseUrl + "?token=" + resetToken;
+    String resetLink = resetBaseUrl + "?token=" + resetToken;
 
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+    try {
+      MimeMessage mimeMessage = mailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            helper.setFrom("noreply@ehefin.com");
-            helper.setTo(toEmail);
-            helper.setSubject("🔐 Password Reset Request");
-            helper.setText(buildHtmlEmailBody(resetLink, resetToken), true);
+      helper.setFrom("noreply@ehefin.com");
+      helper.setTo(toEmail);
+      helper.setSubject("🔐 Password Reset Request");
+      helper.setText(buildHtmlEmailBody(resetLink, resetToken), true);
 
-            mailSender.send(mimeMessage);
+      mailSender.send(mimeMessage);
 
-            log.info("Password reset email sent successfully to: {}", toEmail);
-        } catch (MessagingException e) {
-            log.error("Failed to send password reset email to: {}", toEmail, e);
-            throw new RuntimeException("Failed to send password reset email", e);
-        }
+      log.info("Password reset email sent successfully to: {}", toEmail);
+    } catch (MessagingException e) {
+      log.error("Failed to send password reset email to: {}", toEmail, e);
+      throw new RuntimeException("Failed to send password reset email", e);
     }
+  }
 
-    private String buildHtmlEmailBody(String resetLink, String token) {
-        return """
+  private String buildHtmlEmailBody(String resetLink, String token) {
+    return """
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -139,6 +137,6 @@ public class EmailServiceImpl implements EmailService {
                 </body>
                 </html>
                 """
-                .formatted(resetLink, resetLink, token);
-    }
+        .formatted(resetLink, resetLink, token);
+  }
 }

@@ -5,16 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Response DTO for branch details.
- */
+/** Response DTO for branch details. */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class BranchResponse {
 
-    private Long id;
-    private String code;
-    private String location;
+  private Long id;
+  private String code;
+  private String location;
 }

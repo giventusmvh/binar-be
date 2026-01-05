@@ -6,15 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Request DTO for selecting a plafond/product as credit limit.
- */
+/** Request DTO for selecting a plafond/product as credit limit. */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SelectPlafondRequest {
 
-    @NotNull(message = "Product ID is required")
-    private Long productId;
+  @NotNull(message = "Product ID is required") private Long productId;
 }

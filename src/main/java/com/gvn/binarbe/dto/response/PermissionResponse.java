@@ -5,16 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Response DTO for permission details.
- */
+/** Response DTO for permission details. */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PermissionResponse {
 
-    private Long id;
-    private String code;
-    private String description;
+  private Long id;
+  private String code;
+  private String description;
 }
