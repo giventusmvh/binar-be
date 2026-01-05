@@ -371,6 +371,82 @@ curl -X GET "$BASE_URL/api/customer/profile" \
 }
 ```
 
+### 3.5 Update Profile
+
+```bash
+# ✅ Success - Update customer profile
+curl -X PUT "$BASE_URL/api/customer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{
+    "nik": "3174051505900001",
+    "birthdate": "1990-05-15",
+    "phone": "081234567890",
+    "address": "Jl. Sudirman No. 123, Jakarta Pusat"
+  }'
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "data": {
+    "id": 1,
+    "birthdate": "1990-05-15",
+    "phone": "081234567890",
+    "address": "Jl. Sudirman No. 123, Jakarta Pusat",
+    "nik": "3174051505900001",
+    "isComplete": true
+  },
+  "timestamp": "2026-01-01T12:11:00.123456"
+}
+```
+
+```bash
+# ❌ Error - Invalid NIK format (must be 16 digits)
+curl -X PUT "$BASE_URL/api/customer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{
+    "nik": "12345",
+    "birthdate": "1990-05-15",
+    "phone": "081234567890",
+    "address": "Jl. Sudirman No. 123"
+  }'
+
+# Response: 400 Bad Request
+{
+  "success": false,
+  "message": "Validation failed",
+  "data": {
+    "nik": "NIK must be exactly 16 digits"
+  },
+  "timestamp": "2026-01-01T12:11:05.123456"
+}
+```
+
+```bash
+# ❌ Error - Invalid phone format (must be 10-15 digits)
+curl -X PUT "$BASE_URL/api/customer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d '{
+    "nik": "3174051505900001",
+    "birthdate": "1990-05-15",
+    "phone": "123",
+    "address": "Jl. Sudirman No. 123"
+  }'
+
+# Response: 400 Bad Request
+{
+  "success": false,
+  "message": "Validation failed",
+  "data": {
+    "phone": "Phone must be 10-15 digits"
+  },
+  "timestamp": "2026-01-01T12:11:10.123456"
+}
+```
+
 ---
 
 ## 4. Loan Application Flow
