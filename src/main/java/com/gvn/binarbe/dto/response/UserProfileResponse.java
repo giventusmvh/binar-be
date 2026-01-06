@@ -1,6 +1,7 @@
 package com.gvn.binarbe.dto.response;
 
 import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +20,5 @@ public class UserProfileResponse {
   private String address;
   private String nik;
   private Boolean isComplete;
+  private List<UserDocumentResponse> documents;
 }

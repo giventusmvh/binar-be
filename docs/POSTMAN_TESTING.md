@@ -307,15 +307,13 @@ if (pm.response.code === 201) {
 **Endpoint:** `PUT /api/customer/profile`  
 **Auth:** Bearer Token (CUSTOMER)
 
-```json
-// Request Body
-{
-  "nik": "3201234567890001",
-  "birthdate": "1990-05-15",
-  "phoneNumber": "+6281234567890",
-  "address": "Jl. Sudirman No. 123, Jakarta"
-}
-```
+**Body Type:** `form-data`
+
+| Key     | Type | Value                                                                                                                         | Content-Type (Click ... to add) |
+| ------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `data`  | Text | `{"nik": "3201234567890001", "birthdate": "1990-05-15", "phone": "081234567890", "address": "Jl. Sudirman No. 123, Jakarta"}` | `application/json`              |
+| `files` | File | (Select File 1)                                                                                                               |                                 |
+| `files` | File | (Select File 2)                                                                                                               |                                 |
 
 ```json
 // Success Response (200 OK)

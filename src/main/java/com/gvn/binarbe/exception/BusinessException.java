@@ -22,6 +22,11 @@ public class BusinessException extends RuntimeException {
     this.status = status;
   }
 
+  public BusinessException(String message, Throwable cause) {
+    super(message, cause);
+    this.status = HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
   public static BusinessException notFound(String message) {
     return new BusinessException(message, HttpStatus.NOT_FOUND);
   }

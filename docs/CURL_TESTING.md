@@ -374,16 +374,18 @@ curl -X GET "$BASE_URL/api/customer/profile" \
 ### 3.5 Update Profile
 
 ```bash
-# ✅ Success - Update customer profile
+# ✅ Success - Update customer profile with documents (multipart/form-data)
+# Note: 'data' field contains the JSON profile data, 'files' contains the uploaded documents
 curl -X PUT "$BASE_URL/api/customer/profile" \
-  -H "Content-Type: application/json" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -d '{
-    "nik": "3174051505900001",
-    "birthdate": "1990-05-15",
-    "phone": "081234567890",
-    "address": "Jl. Sudirman No. 123, Jakarta Pusat"
-  }'
+  -F "data={
+    \"nik\": \"3174051505900001\",
+    \"birthdate\": \"1990-05-15\",
+    \"phone\": \"081234567890\",
+    \"address\": \"Jl. Sudirman No. 123, Jakarta Pusat\"
+  };type=application/json" \
+  -F "files=@ktp.jpg" \
+  -F "files=@kk.jpg"
 
 # Response: 200 OK
 {

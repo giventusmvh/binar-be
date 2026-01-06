@@ -41,13 +41,17 @@ public class CustomerController {
   }
 
   /** Update customer profile. PUT /api/customer/profile Requires PROFILE_UPDATE permission. */
-  @PutMapping("/api/customer/profile")
+  @PutMapping(
+      value = "/api/customer/profile",
+      consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("hasAuthority('PROFILE_UPDATE')")
   public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
       @AuthenticationPrincipal UserDetails userDetails,
-      @Valid @RequestBody UpdateProfileRequest request) {
+      @RequestPart("data") @Valid UpdateProfileRequest request,
+      @RequestPart(value = "files", required = false)
+          List<org.springframework.web.multipart.MultipartFile> files) {
     UserProfileResponse response =
-        customerService.updateProfile(userDetails.getUsername(), request);
+        customerService.updateProfile(userDetails.getUsername(), request, files);
     return ResponseUtil.ok("Profile updated successfully", response);
   }
 

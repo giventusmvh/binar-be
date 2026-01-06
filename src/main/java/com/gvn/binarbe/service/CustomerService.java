@@ -6,6 +6,7 @@ import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.dto.response.UserProfileResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 /** Service interface for customer operations. */
 public interface CustomerService {
@@ -25,7 +26,8 @@ public interface CustomerService {
    * @param request profile update data
    * @return updated profile response
    */
-  UserProfileResponse updateProfile(String email, UpdateProfileRequest request);
+  UserProfileResponse updateProfile(
+      String email, UpdateProfileRequest request, List<MultipartFile> files);
 
   /**
    * Check if customer profile is complete.
