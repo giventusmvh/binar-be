@@ -1237,13 +1237,6 @@ if (pm.response.code === 201) {
 4. **Select Plafond**: `POST /api/customer/plafond`
 5. **Retry Submit Loan**: Should succeed now
 
-### Scenario 4: Change Password
-
-1. **Login**: Any user
-2. **Change Password**: `POST /api/auth/change-password`
-3. **Try Login with Old Password**: Should fail (401)
-4. **Login with New Password**: Should succeed
-
 ---
 
 ## Error Response Reference
@@ -1255,8 +1248,8 @@ if (pm.response.code === 201) {
 | POST /auth/register         | Invalid email       | 400    | email: must be a valid email                        |
 | POST /auth/register         | Short password      | 400    | password: size must be between 6 and 100            |
 | POST /auth/login            | Wrong credentials   | 401    | Invalid email or password                           |
-| POST /auth/change-password  | Wrong current       | 400    | Current password is incorrect                       |
-| POST /auth/change-password  | Mismatch            | 400    | New password and confirm password do not match      |
+| POST /auth/reset-password   | Invalid token       | 400    | Invalid or expired reset token                      |
+| POST /auth/reset-password   | Mismatch            | 400    | New password and confirm password do not match      |
 | **Profile**                 |                     |        |                                                     |
 | PUT /customer/profile       | Invalid NIK         | 400    | nik: NIK must be exactly 16 digits                  |
 | **Plafond**                 |                     |        |                                                     |
@@ -1284,4 +1277,4 @@ if (pm.response.code === 201) {
 
 ---
 
-_Documentation generated: 2025-12-24_
+_Documentation updated: 2026-01-07_
