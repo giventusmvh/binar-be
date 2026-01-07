@@ -580,4 +580,4 @@ Marketing          BranchMgr          Backoffice         Database
 
 ---
 
-_Documentation generated: 2025-12-31_
+_Documentation updated: 2026-01-07_

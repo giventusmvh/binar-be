@@ -407,3 +407,7 @@ Content-Type: application/json
 | [LoanApplication.java](file:///Users/given/IdeaProjects/binar-be/src/main/java/com/gvn/binarbe/entity/LoanApplication.java)               | Entity loan application               |
 | [LoanApplicationHistory.java](file:///Users/given/IdeaProjects/binar-be/src/main/java/com/gvn/binarbe/entity/LoanApplicationHistory.java) | Entity audit trail                    |
 | [DataInitializer.java](file:///Users/given/IdeaProjects/binar-be/src/main/java/com/gvn/binarbe/initializer/DataInitializer.java)          | Setup permissions & roles             |
+
+---
+
+_Documentation updated: 2026-01-07_
