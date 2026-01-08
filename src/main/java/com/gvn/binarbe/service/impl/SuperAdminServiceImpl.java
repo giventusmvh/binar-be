@@ -39,7 +39,6 @@ public class SuperAdminServiceImpl implements SuperAdminService {
   private final PermissionRepository permissionRepository;
   private final BranchRepository branchRepository;
   private final PasswordEncoder passwordEncoder;
-  private final com.gvn.binarbe.repository.UserDocumentRepository userDocumentRepository;
 
   @Override
   @Transactional
@@ -239,19 +238,9 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         .address(profile.getAddress())
         .nik(profile.getNik())
         .isComplete(profile.isComplete())
-        .documents(
-            userDocumentRepository.findByUserId(profile.getUser().getId()).stream()
-                .map(this::mapToDocumentResponse)
-                .collect(Collectors.toList()))
-        .build();
-  }
-
-  private UserDocumentResponse mapToDocumentResponse(com.gvn.binarbe.entity.UserDocument document) {
-    return UserDocumentResponse.builder()
-        .id(document.getId())
-        .fileName(document.getFileName())
-        .fileType(document.getFileType())
-        .url("/uploads/" + document.getFilePath())
+        .ktpUrl(profile.getKtpPath() != null ? "/uploads/" + profile.getKtpPath() : null)
+        .kkUrl(profile.getKkPath() != null ? "/uploads/" + profile.getKkPath() : null)
+        .npwpUrl(profile.getNpwpPath() != null ? "/uploads/" + profile.getNpwpPath() : null)
         .build();
   }
 

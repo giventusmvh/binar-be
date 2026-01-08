@@ -644,6 +644,58 @@ public class CustomerController {
 
 ---
 
+### 8. FileController - Secure File Access
+
+File yang diupload (KTP, KK, NPWP) tersimpan di direktori server dan diakses melalui endpoint `/uploads/{filename}`.
+
+```java
+// File: src/main/java/com/gvn/binarbe/controller/FileController.java
+
+@Controller
+@RequiredArgsConstructor
+@Slf4j
+public class FileController {
+
+  // ... repositories ...
+
+  @GetMapping("/uploads/{filename:.+}")
+  public ResponseEntity<Resource> getFile(@PathVariable String filename, Authentication authentication) {
+
+    // 1. Staff Access Check (Marketing, Branch Manager, Backoffice, Superadmin)
+    boolean isStaff = authentication.getAuthorities().stream()
+        .anyMatch(a -> a.getAuthority().startsWith("ROLE_MARKETING")
+                    || a.getAuthority().startsWith("ROLE_BRANCH_MANAGER")
+                    || a.getAuthority().startsWith("ROLE_BACKOFFICE")
+                    || a.getAuthority().equals("ROLE_SUPERADMIN"));
+
+    if (isStaff) {
+      return serveFile(filename);
+    }
+
+    // 2. Owner Access Check
+    // Mencari profile yang memiliki file tersebut di field ktpPath/kkPath/npwpPath
+    Optional<UserProfile> profile = userProfileRepository.findByKtpPathOrKkPathOrNpwpPath(filename, filename, filename);
+
+    if (profile.isPresent()) {
+      // Pastikan yang akses adalah pemilik profile
+      if (profile.get().getUser().getEmail().equals(authentication.getName())) {
+        return serveFile(filename);
+      }
+    }
+
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+  }
+}
+```
+
+**Logika Keamanan:**
+
+1. **Public Access Denied**: Endpoint `/uploads/**` tidak di-whitelist di `SecurityConfig`, jadi butuh autentikasi (Login).
+2. **Staff Access**: User dengan role internal (Marketing, Branch Manager, Backoffice, Superadmin) bisa mengakses semua file.
+3. **Owner Access**: Customer HANYA bisa mengakses file yang path-nya tercatat di profile mereka (`ktpPath`, `kkPath`, `npwpPath`).
+
+---
+
 ## Endpoint Access Matrix
 
 ### Public Endpoints (Tanpa Login)
@@ -657,7 +709,7 @@ public class CustomerController {
 
 ### Protected Endpoints (Butuh Login + Permission)
 
-| Endpoint                     | Method | Permission                          | Role yang Memiliki                    |
+| Endpoint                     | Method | Permission/Role                     | Role yang Memiliki                    |
 | ---------------------------- | ------ | ----------------------------------- | ------------------------------------- |
 | `/api/loans`                 | POST   | `LOAN_CREATE`                       | Customer                              |
 | `/api/loans`                 | GET    | `LOAN_READ`                         | Customer                              |
@@ -671,6 +723,7 @@ public class CustomerController {
 | `/api/customer/plafond`      | POST   | `PLAFOND_SELECT`                    | Customer                              |
 | `/api/customer/plafond`      | GET    | `PLAFOND_READ`                      | Customer                              |
 | `/api/admin/**`              | ALL    | Role `SUPERADMIN`                   | Superadmin                            |
+| `/uploads/{filename}`        | GET    | Authenticated (Staff or Owner)      | All authenticated users (conditional) |
 
 ### Role-Permission Matrix
 

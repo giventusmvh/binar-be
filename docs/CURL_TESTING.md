@@ -375,7 +375,7 @@ curl -X GET "$BASE_URL/api/customer/profile" \
 
 ```bash
 # ✅ Success - Update customer profile with documents (multipart/form-data)
-# Note: 'data' field contains the JSON profile data, 'files' contains the uploaded documents
+# Note: 'data' field contains the JSON profile data, 'ktp', 'kk', 'npwp' contain the uploaded documents
 curl -X PUT "$BASE_URL/api/customer/profile" \
   -H "Authorization: Bearer $CUSTOMER_TOKEN" \
   -F "data={
@@ -384,8 +384,8 @@ curl -X PUT "$BASE_URL/api/customer/profile" \
     \"phone\": \"081234567890\",
     \"address\": \"Jl. Sudirman No. 123, Jakarta Pusat\"
   };type=application/json" \
-  -F "files=@ktp.jpg" \
-  -F "files=@kk.jpg"
+  -F "ktp=@ktp.jpg" \
+  -F "kk=@kk.jpg"
 
 # Response: 200 OK
 {
@@ -397,6 +397,9 @@ curl -X PUT "$BASE_URL/api/customer/profile" \
     "phone": "081234567890",
     "address": "Jl. Sudirman No. 123, Jakarta Pusat",
     "nik": "3174051505900001",
+    "ktpUrl": "http://localhost:8080/uploads/uuid-ktp.jpg",
+    "kkUrl": "http://localhost:8080/uploads/uuid-kk.jpg",
+    "npwpUrl": null,
     "isComplete": true
   },
   "timestamp": "2026-01-01T12:11:00.123456"

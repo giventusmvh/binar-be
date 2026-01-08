@@ -3,18 +3,15 @@ package com.gvn.binarbe.service.impl;
 import com.gvn.binarbe.dto.request.UpdateProfileRequest;
 import com.gvn.binarbe.dto.response.BranchResponse;
 import com.gvn.binarbe.dto.response.ProductResponse;
-import com.gvn.binarbe.dto.response.UserDocumentResponse;
 import com.gvn.binarbe.dto.response.UserProfileResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
 import com.gvn.binarbe.entity.Branch;
 import com.gvn.binarbe.entity.Product;
 import com.gvn.binarbe.entity.User;
-import com.gvn.binarbe.entity.UserDocument;
 import com.gvn.binarbe.entity.UserProfile;
 import com.gvn.binarbe.exception.BusinessException;
 import com.gvn.binarbe.repository.BranchRepository;
 import com.gvn.binarbe.repository.ProductRepository;
-import com.gvn.binarbe.repository.UserDocumentRepository;
 import com.gvn.binarbe.repository.UserProfileRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.service.CustomerService;
@@ -38,7 +35,6 @@ public class CustomerServiceImpl implements CustomerService {
   private final ProductRepository productRepository;
   private final BranchRepository branchRepository;
   private final FileStorageService fileStorageService;
-  private final UserDocumentRepository userDocumentRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -58,7 +54,11 @@ public class CustomerServiceImpl implements CustomerService {
   @Override
   @Transactional
   public UserProfileResponse updateProfile(
-      String email, UpdateProfileRequest request, List<MultipartFile> files) {
+      String email,
+      UpdateProfileRequest request,
+      MultipartFile ktp,
+      MultipartFile kk,
+      MultipartFile npwp) {
     log.info("Updating profile for user: {}", email);
 
     User user =
@@ -76,23 +76,22 @@ public class CustomerServiceImpl implements CustomerService {
     profile.setAddress(request.getAddress());
     profile.setNik(request.getNik());
 
-    profile = userProfileRepository.save(profile);
-
-    if (files != null && !files.isEmpty()) {
-      for (MultipartFile file : files) {
-        String fileName = fileStorageService.storeFile(file);
-
-        UserDocument document =
-            UserDocument.builder()
-                .user(user)
-                .fileName(file.getOriginalFilename())
-                .filePath(fileName)
-                .fileType(file.getContentType())
-                .build();
-
-        userDocumentRepository.save(document);
-      }
+    if (ktp != null && !ktp.isEmpty()) {
+      String ktpFileName = fileStorageService.storeFile(ktp);
+      profile.setKtpPath(ktpFileName);
     }
+
+    if (kk != null && !kk.isEmpty()) {
+      String kkFileName = fileStorageService.storeFile(kk);
+      profile.setKkPath(kkFileName);
+    }
+
+    if (npwp != null && !npwp.isEmpty()) {
+      String npwpFileName = fileStorageService.storeFile(npwp);
+      profile.setNpwpPath(npwpFileName);
+    }
+
+    profile = userProfileRepository.save(profile);
 
     log.info("Profile updated for user: {}", email);
 
@@ -107,12 +106,10 @@ public class CustomerServiceImpl implements CustomerService {
             .findByEmail(email)
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
-    boolean isProfileFieldsComplete =
-        userProfileRepository.findByUserId(user.getId()).map(UserProfile::isComplete).orElse(false);
-
-    boolean hasDocuments = !userDocumentRepository.findByUserId(user.getId()).isEmpty();
-
-    return isProfileFieldsComplete && hasDocuments;
+    return userProfileRepository
+        .findByUserId(user.getId())
+        .map(UserProfile::isComplete)
+        .orElse(false);
   }
 
   @Override
@@ -156,19 +153,9 @@ public class CustomerServiceImpl implements CustomerService {
         .address(profile.getAddress())
         .nik(profile.getNik())
         .isComplete(profile.isComplete())
-        .documents(
-            userDocumentRepository.findByUserId(profile.getUser().getId()).stream()
-                .map(this::mapToDocumentResponse)
-                .collect(Collectors.toList()))
-        .build();
-  }
-
-  private UserDocumentResponse mapToDocumentResponse(UserDocument document) {
-    return UserDocumentResponse.builder()
-        .id(document.getId())
-        .fileName(document.getFileName())
-        .fileType(document.getFileType())
-        .url("/uploads/" + document.getFilePath())
+        .ktpUrl(profile.getKtpPath() != null ? "/uploads/" + profile.getKtpPath() : null)
+        .kkUrl(profile.getKkPath() != null ? "/uploads/" + profile.getKkPath() : null)
+        .npwpUrl(profile.getNpwpPath() != null ? "/uploads/" + profile.getNpwpPath() : null)
         .build();
   }
 

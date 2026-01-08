@@ -309,11 +309,12 @@ if (pm.response.code === 201) {
 
 **Body Type:** `form-data`
 
-| Key     | Type | Value                                                                                                                         | Content-Type (Click ... to add) |
-| ------- | ---- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `data`  | Text | `{"nik": "3201234567890001", "birthdate": "1990-05-15", "phone": "081234567890", "address": "Jl. Sudirman No. 123, Jakarta"}` | `application/json`              |
-| `files` | File | (Select File 1)                                                                                                               |                                 |
-| `files` | File | (Select File 2)                                                                                                               |                                 |
+| Key    | Type | Value                                                                                                                         | Content-Type (Click ... to add) |
+| ------ | ---- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `data` | Text | `{"nik": "3201234567890001", "birthdate": "1990-05-15", "phone": "081234567890", "address": "Jl. Sudirman No. 123, Jakarta"}` | `application/json`              |
+| `ktp`  | File | (Select KTP File)                                                                                                             |                                 |
+| `kk`   | File | (Select KK File)                                                                                                              |                                 |
+| `npwp` | File | (Select NPWP File)                                                                                                            |                                 |
 
 ```json
 // Success Response (200 OK)
@@ -325,6 +326,9 @@ if (pm.response.code === 201) {
     "birthdate": "1990-05-15",
     "phoneNumber": "+6281234567890",
     "address": "Jl. Sudirman No. 123, Jakarta",
+    "ktpUrl": "http://localhost:8080/uploads/uuid-ktp.jpg",
+    "kkUrl": "http://localhost:8080/uploads/uuid-kk.jpg",
+    "npwpUrl": "http://localhost:8080/uploads/uuid-npwp.jpg",
     "isComplete": true
   },
   "timestamp": "2025-12-22T10:00:00"

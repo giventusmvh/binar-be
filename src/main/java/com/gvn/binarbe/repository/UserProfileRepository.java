@@ -11,4 +11,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
   Optional<UserProfile> findByUserId(Long userId);
 
   boolean existsByUserId(Long userId);
+
+  Optional<UserProfile> findByKtpPathOrKkPathOrNpwpPath(
+      String ktpPath, String kkPath, String npwpPath);
 }

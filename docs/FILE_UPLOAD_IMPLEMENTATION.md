@@ -4,44 +4,46 @@ This document explains the technical implementation of the multi-file upload fea
 
 ## 1. Overview
 
-The feature allows users to upload multiple identity documents (e.g., KTP, KK) as part of their profile update.
+The feature allows users to upload specific identity documents (KTP, KK, NPWP) as part of their profile update.
 
 - **Method**: `PUT`
 - **Content-Type**: `multipart/form-data`
 - **Storage**: Local filesystem (`uploads/` directory)
-- **Database**: Metadata stored in `user_documents` table
+- **Database**: File paths stored directly in `user_profiles` table columns (`ktp_path`, `kk_path`, `npwp_path`).
 
 ## 2. Architecture & Code Flow
 
-The implementation follows a layered architecture: `Controller` -> `Service` -> `Repository` & `FileStorage`.
+The implementation follows a layered architecture: `Controller` -> `Service` -> `Repository`.
 
-### A. Entity: `UserDocument`
+### A. Entity: `UserProfile`
 
-**File**: `src/main/java/com/gvn/binarbe/entity/UserDocument.java`
+**File**: `src/main/java/com/gvn/binarbe/entity/UserProfile.java`
 
-This entity stores metadata about the uploaded file, linking it to a `User`.
+This entity stores personal information and paths to uploaded documents.
 
-- `fileName`: Original name of the file.
-- `filePath`: The generated unique name (UUID) stored on disk.
-- `fileType`: MIME type (e.g., `image/jpeg`).
+- `ktpPath`: Path to the stored KTP image.
+- `kkPath`: Path to the stored KK image.
+- `npwpPath`: Path to the stored NPWP image.
 
 ### B. Controller Layer
 
 **File**: `src/main/java/com/gvn/binarbe/controller/CustomerController.java`
 
-The `updateProfile` endpoint was modified to handle `multipart/form-data`.
+The `updateProfile` endpoint handles `multipart/form-data` with specific parts for each document.
 
 ```java
 @PutMapping(value = "/api/customer/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
     @AuthenticationPrincipal UserDetails userDetails,
     @RequestPart("data") @Valid UpdateProfileRequest request, // <--- JSON Data
-    @RequestPart(value = "files", required = false) List<MultipartFile> files // <--- List of Files
+    @RequestPart(value = "ktp", required = false) MultipartFile ktp, // <--- Individual File
+    @RequestPart(value = "kk", required = false) MultipartFile kk,   // <--- Individual File
+    @RequestPart(value = "npwp", required = false) MultipartFile npwp // <--- Individual File
 ) { ... }
 ```
 
 - Uses `@RequestPart("data")` to map the JSON part of the request to the DTO.
-- Uses `@RequestPart("files")` to accept a list of files.
+- Uses named `@RequestPart` for each document type (`ktp`, `kk`, `npwp`).
 
 ### C. Service Layer
 
@@ -49,18 +51,26 @@ public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
 
 The service handles the business logic:
 
-1.  **Update Profile Data**: Updates text fields (phone, address, etc.) first.
+1.  **Update Profile Data**: Updates text fields (phone, birthdate, etc.).
 2.  **Process Files**:
-    - Iterates through the list of `files`.
+    - Checks if each file (`ktp`, `kk`, `npwp`) is present.
     - Calls `fileStorageService.storeFile(file)` to save the file physically.
-    - Creates a new `UserDocument` entity for each file.
-    - Saves the entity to the database using `UserDocumentRepository`.
+    - Updates the corresponding field in `UserProfile` (`setKtpPath`, etc.) with the generated filename.
 
 **File**: `src/main/java/com/gvn/binarbe/service/impl/FileStorageServiceImpl.java`
 
 - Generates a unique filename using `UUID` to prevent overwriting.
 - `UUID.randomUUID().toString() + fileExtension`
 - Copies the file input stream to the target location (`uploads/UUID.ext`).
+
+### D. Security & File Access
+
+**File**: `src/main/java/com/gvn/binarbe/controller/FileController.java`
+
+- Endpoint: `GET /uploads/{filename}`
+- **Security Check**:
+  - **Staff Access**: Users with roles `MARKETING`, `BRANCH_MANAGER`, `BACKOFFICE`, or `SUPERADMIN` can access any file.
+  - **Owner Access**: Customers can only access files linked to their own `UserProfile`. The system checks if the requested filename matches `ktpPath`, `kkPath`, or `npwpPath` of a profile owned by the authenticated user.
 
 ## 3. How to Test with Postman
 
@@ -83,24 +93,21 @@ To test this feature in Postman, follow these exact steps:
 
 4.  **Add Fields**:
 
-    | Key     | Type     | Value                                                   | Content-Type (Important!) |
-    | :------ | :------- | :------------------------------------------------------ | :------------------------ |
-    | `data`  | **Text** | `{"nik": "1234567890123456", "phone": "08123...", ...}` | `application/json`        |
-    | `files` | **File** | (Select your image file, e.g., ktp.jpg)                 |                           |
-    | `files` | **File** | (Select another image file, e.g., kk.jpg)               |                           |
+    | Key    | Type     | Value                                                   | Content-Type (Important!) |
+    | :----- | :------- | :------------------------------------------------------ | :------------------------ |
+    | `data` | **Text** | `{"nik": "1234567890123456", "phone": "08123...", ...}` | `application/json`        |
+    | `ktp`  | **File** | (Select your KTP image file)                            |                           |
+    | `kk`   | **File** | (Select your KK image file)                             |                           |
+    | `npwp` | **File** | (Select your NPWP image file)                           |                           |
 
     > **IMPORTANT**: For the `data` key, you **MUST** manually set the Content-Type to `application/json`.
-    >
-    > 1. Hover over the `data` row in Postman.
-    > 2. Click the three dots `...` (or enable the "Content-Type" column if hidden).
-    > 3. Enter `application/json` in the Content-Type column for that row.
 
 5.  **Send Request**:
     - Click **Send**.
-    - You should receive a `200 OK` response with the updated profile and list of documents.
+    - You should receive a `200 OK` response with the updated profile and file URLs (e.g., `ktpUrl`, `kkUrl`, `npwpUrl`).
 
 ## 4. Key Takeaways
 
-- We use `multipart/form-data` because we are sending **complex data** (JSON + Binary Files) in a single request.
-- Using `@RequestPart` is the standard Spring way to handle mixed content types.
-- Files are stored physically on the server, while the database keeps a reference (path) to them.
+- We use `multipart/form-data` to send JSON + Binary Files.
+- Specific named parameters (`ktp`, `kk`, `npwp`) are used instead of a generic list.
+- Files are secured so only owners or staff can view them.

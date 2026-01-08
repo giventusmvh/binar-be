@@ -36,9 +36,18 @@ public class UserProfile {
   @Column(length = 16)
   private String nik; // Indonesian National ID
 
+  @Column(name = "ktp_path")
+  private String ktpPath;
+
+  @Column(name = "kk_path")
+  private String kkPath;
+
+  @Column(name = "npwp_path")
+  private String npwpPath;
+
   /**
    * Check if profile is complete for loan application submission. All fields (birthdate, phone,
-   * address, nik) must be filled.
+   * address, nik, ktp, kk, npwp) must be filled.
    */
   public boolean isComplete() {
     return birthdate != null
@@ -47,6 +56,12 @@ public class UserProfile {
         && address != null
         && !address.isBlank()
         && nik != null
-        && !nik.isBlank();
+        && !nik.isBlank()
+        && ktpPath != null
+        && !ktpPath.isBlank()
+        && kkPath != null
+        && !kkPath.isBlank()
+        && npwpPath != null
+        && !npwpPath.isBlank();
   }
 }

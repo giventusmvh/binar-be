@@ -6,13 +6,11 @@ import static org.mockito.Mockito.when;
 
 import com.gvn.binarbe.dto.response.UserResponse;
 import com.gvn.binarbe.entity.User;
-import com.gvn.binarbe.entity.UserDocument;
 import com.gvn.binarbe.entity.UserProfile;
 import com.gvn.binarbe.enums.UserType;
 import com.gvn.binarbe.repository.BranchRepository;
 import com.gvn.binarbe.repository.PermissionRepository;
 import com.gvn.binarbe.repository.RoleRepository;
-import com.gvn.binarbe.repository.UserDocumentRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -35,13 +33,11 @@ class SuperAdminServiceImplTest {
   @Mock private PermissionRepository permissionRepository;
   @Mock private BranchRepository branchRepository;
   @Mock private PasswordEncoder passwordEncoder;
-  @Mock private UserDocumentRepository userDocumentRepository;
 
   @InjectMocks private SuperAdminServiceImpl superAdminService;
 
   private User testUser;
   private UserProfile testProfile;
-  private UserDocument testDocument;
 
   @BeforeEach
   void setUp() {
@@ -63,18 +59,12 @@ class SuperAdminServiceImplTest {
             .phone("08123456789")
             .address("Some Address")
             .nik("1234567890123456")
+            .ktpPath("ktp.jpg")
+            .kkPath("kk.jpg")
+            .npwpPath("npwp.jpg")
             .build();
 
     testUser.setProfile(testProfile);
-
-    testDocument =
-        UserDocument.builder()
-            .id(1L)
-            .user(testUser)
-            .fileName("test.pdf")
-            .fileType("application/pdf")
-            .filePath("test.pdf")
-            .build();
   }
 
   @Test
@@ -82,8 +72,6 @@ class SuperAdminServiceImplTest {
   void getAllUsers_ShouldIncludeProfileDocuments() {
     // Arrange
     when(userRepository.findAll()).thenReturn(Collections.singletonList(testUser));
-    when(userDocumentRepository.findByUserId(testUser.getId()))
-        .thenReturn(Collections.singletonList(testDocument));
 
     // Act
     List<UserResponse> responses = superAdminService.getAllUsers();
@@ -93,8 +81,8 @@ class SuperAdminServiceImplTest {
     assertEquals(1, responses.size());
     UserResponse response = responses.get(0);
     assertNotNull(response.getProfile());
-    assertNotNull(response.getProfile().getDocuments());
-    assertEquals(1, response.getProfile().getDocuments().size());
-    assertEquals("test.pdf", response.getProfile().getDocuments().get(0).getFileName());
+    assertEquals("/uploads/ktp.jpg", response.getProfile().getKtpUrl());
+    assertEquals("/uploads/kk.jpg", response.getProfile().getKkUrl());
+    assertEquals("/uploads/npwp.jpg", response.getProfile().getNpwpUrl());
   }
 }

@@ -27,7 +27,11 @@ public interface CustomerService {
    * @return updated profile response
    */
   UserProfileResponse updateProfile(
-      String email, UpdateProfileRequest request, List<MultipartFile> files);
+      String email,
+      UpdateProfileRequest request,
+      MultipartFile ktp,
+      MultipartFile kk,
+      MultipartFile npwp);
 
   /**
    * Check if customer profile is complete.

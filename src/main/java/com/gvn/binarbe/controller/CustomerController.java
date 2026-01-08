@@ -48,10 +48,14 @@ public class CustomerController {
   public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
       @AuthenticationPrincipal UserDetails userDetails,
       @RequestPart("data") @Valid UpdateProfileRequest request,
-      @RequestPart(value = "files", required = false)
-          List<org.springframework.web.multipart.MultipartFile> files) {
+      @RequestPart(value = "ktp", required = false)
+          org.springframework.web.multipart.MultipartFile ktp,
+      @RequestPart(value = "kk", required = false)
+          org.springframework.web.multipart.MultipartFile kk,
+      @RequestPart(value = "npwp", required = false)
+          org.springframework.web.multipart.MultipartFile npwp) {
     UserProfileResponse response =
-        customerService.updateProfile(userDetails.getUsername(), request, files);
+        customerService.updateProfile(userDetails.getUsername(), request, ktp, kk, npwp);
     return ResponseUtil.ok("Profile updated successfully", response);
   }
 

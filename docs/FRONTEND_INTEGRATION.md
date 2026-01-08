@@ -153,16 +153,21 @@ Authorization: Bearer <jwt_token>
 #### Update Profile
 
 **Endpoint:** `PUT /api/customer/profile`
+**Content-Type:** `multipart/form-data`
 
-```json
-// Request
-{
-  "nik": "3201234567890001", // 16 digits
-  "birthdate": "1990-05-15", // yyyy-MM-dd
-  "phoneNumber": "+6281234567890",
-  "address": "Jl. Sudirman No. 123, Jakarta"
-}
-```
+1.  **data** (Part): JSON string containing profile fields
+    ```json
+    {
+      "nik": "3201234567890001",
+      "birthdate": "1990-05-15",
+      "//": "...",
+      "phone": "081234567890",
+      "address": "Jl. Sudirman No. 123, Jakarta"
+    }
+    ```
+2.  **ktp** (Part): File (Optional)
+3.  **kk** (Part): File (Optional)
+4.  **npwp** (Part): File (Optional)
 
 **Validation:**
 
