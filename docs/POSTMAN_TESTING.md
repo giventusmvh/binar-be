@@ -13,6 +13,8 @@
 5. [Loan Application Flow](#5-loan-application-flow)
 6. [Approval Workflow](#6-approval-workflow)
 7. [SuperAdmin Flow](#7-superadmin-flow)
+8. [Shared Staff Operations](#8-shared-staff-operations)
+9. [File Access](#9-file-access)
 
 ---
 
@@ -1467,6 +1469,108 @@ if (pm.response.code === 201) {
   "timestamp": "2025-12-22T10:00:00"
 }
 ```
+
+---
+
+## 9. File Access
+
+### 9.1 Get Uploaded File
+
+**Endpoint:** `GET /uploads/{filename}`  
+**Auth:** Bearer Token (any authenticated user)
+
+> Secure file access with role and ownership-based authorization.
+>
+> - **Staff roles (SUPERADMIN, BACKOFFICE, BRANCH_MANAGER, MARKETING)**: Can access any file.
+> - **Customers**: Can only access their own uploaded documents (KTP, KK, NPWP).
+
+**Path Parameters:**
+
+| Parameter  | Description                      |
+| ---------- | -------------------------------- |
+| `filename` | The filename including extension |
+
+**Example Request:**
+
+```bash
+# Staff accessing a customer's document
+curl -X GET "http://localhost:8080/uploads/uuid-ktp.jpg" \
+  -H "Authorization: Bearer {{marketing_token}}"
+
+# Customer accessing their own document
+curl -X GET "http://localhost:8080/uploads/uuid-ktp.jpg" \
+  -H "Authorization: Bearer {{customer_token}}"
+```
+
+**Success Response:**
+
+Returns the file content with appropriate `Content-Type` header (e.g., `image/jpeg`, `application/pdf`).
+
+**Error Responses:**
+
+```json
+// Error Response - Not owner and not staff (403)
+{
+  "status": 403,
+  "error": "Forbidden"
+}
+```
+
+```json
+// Error Response - File not found (404)
+{
+  "status": 404,
+  "error": "Not Found"
+}
+```
+
+> **Note:** File paths are stored in `UserProfile` as `ktpPath`, `kkPath`, and `npwpPath`. These are set when a customer updates their profile with document uploads.
+
+---
+
+## API Endpoint Summary
+
+| #                           | Method | Endpoint                                   | Description                    | Auth                 |
+| --------------------------- | ------ | ------------------------------------------ | ------------------------------ | -------------------- |
+| **Authentication**          |        |                                            |                                |                      |
+| 1                           | POST   | `/api/auth/register`                       | Register new customer          | None                 |
+| 2                           | POST   | `/api/auth/login`                          | Login                          | None                 |
+| 3                           | POST   | `/api/auth/forgot-password`                | Request password reset email   | None                 |
+| 4                           | POST   | `/api/auth/reset-password`                 | Reset password with token      | None                 |
+| 5                           | POST   | `/api/auth/logout`                         | Logout (blacklist token)       | Bearer               |
+| **Customer**                |        |                                            |                                |                      |
+| 6                           | GET    | `/api/customer/profile`                    | Get customer profile           | Bearer (CUSTOMER)    |
+| 7                           | PUT    | `/api/customer/profile`                    | Update profile (multipart)     | Bearer (CUSTOMER)    |
+| 8                           | POST   | `/api/customer/plafond`                    | Select a plafond               | Bearer (CUSTOMER)    |
+| 9                           | GET    | `/api/customer/plafond`                    | Get active plafond             | Bearer (CUSTOMER)    |
+| 10                          | GET    | `/api/products`                            | List all products              | None                 |
+| 11                          | GET    | `/api/branches`                            | List all branches              | None                 |
+| **Loan Application**        |        |                                            |                                |                      |
+| 12                          | POST   | `/api/loans`                               | Submit loan application        | Bearer (CUSTOMER)    |
+| 13                          | GET    | `/api/loans`                               | Get my loans                   | Bearer (CUSTOMER)    |
+| 14                          | GET    | `/api/loans/{id}`                          | Get loan by ID                 | Bearer (Owner/Staff) |
+| 15                          | GET    | `/api/loans/{id}/history`                  | Get loan history               | Bearer (Owner/Staff) |
+| **Approval Workflow**       |        |                                            |                                |                      |
+| 16                          | GET    | `/api/approval/pending`                    | Get pending loans for approval | Bearer (Staff)       |
+| 17                          | POST   | `/api/approval/{id}/approve`               | Approve loan                   | Bearer (Staff)       |
+| 18                          | POST   | `/api/approval/{id}/reject`                | Reject loan                    | Bearer (Staff)       |
+| **SuperAdmin**              |        |                                            |                                |                      |
+| 19                          | POST   | `/api/admin/users`                         | Create internal user           | Bearer (SUPERADMIN)  |
+| 20                          | GET    | `/api/admin/users`                         | Get all users                  | Bearer (SUPERADMIN)  |
+| 21                          | PUT    | `/api/admin/users/{id}`                    | Update user                    | Bearer (SUPERADMIN)  |
+| 22                          | PATCH  | `/api/admin/users/{id}/status`             | Update user status             | Bearer (SUPERADMIN)  |
+| 23                          | POST   | `/api/admin/users/{id}/roles`              | Assign role to user            | Bearer (SUPERADMIN)  |
+| 24                          | DELETE | `/api/admin/users/{userId}/roles/{roleId}` | Remove role from user          | Bearer (SUPERADMIN)  |
+| 25                          | GET    | `/api/admin/roles`                         | Get all roles                  | Bearer (SUPERADMIN)  |
+| 26                          | PUT    | `/api/admin/roles/{id}/permissions`        | Update role permissions        | Bearer (SUPERADMIN)  |
+| 27                          | GET    | `/api/admin/permissions`                   | Get all permissions            | Bearer (SUPERADMIN)  |
+| 28                          | POST   | `/api/admin/branches`                      | Create branch                  | Bearer (SUPERADMIN)  |
+| 29                          | PUT    | `/api/admin/branches/{id}`                 | Update branch                  | Bearer (SUPERADMIN)  |
+| 30                          | DELETE | `/api/admin/branches/{id}`                 | Delete branch                  | Bearer (SUPERADMIN)  |
+| **Shared Staff Operations** |        |                                            |                                |                      |
+| 31                          | GET    | `/api/users/{id}`                          | Get user by ID                 | Bearer (Staff)       |
+| **File Access**             |        |                                            |                                |                      |
+| 32                          | GET    | `/uploads/{filename}`                      | Get uploaded file              | Bearer (Owner/Staff) |
 
 ---
 
