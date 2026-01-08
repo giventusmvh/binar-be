@@ -1200,6 +1200,97 @@ if (pm.response.code === 201) {
 
 ---
 
+### 6.9 Update User
+
+**Endpoint:** `PUT /api/admin/users/{id}`  
+**Auth:** Bearer Token (SUPERADMIN)
+
+> Update user data (name, email, branch). All fields are optional.
+
+```json
+// Request Body
+{
+  "name": "Updated Name",
+  "email": "updated.email@loan.com",
+  "branchId": 2
+}
+```
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "User updated successfully",
+  "data": {
+    "id": 3,
+    "name": "Updated Name",
+    "email": "updated.email@loan.com",
+    "userType": "INTERNAL",
+    "isActive": true,
+    "branch": {
+      "id": 2,
+      "code": "SBY",
+      "location": "Surabaya"
+    },
+    "roles": ["MARKETING"],
+    "createdAt": "2025-12-22T10:00:00"
+  },
+  "timestamp": "2025-12-22T10:00:00"
+}
+```
+
+```json
+// Error Response - Email already exists (409)
+{
+  "success": false,
+  "message": "Email already exists",
+  "timestamp": "2025-12-22T10:00:00"
+}
+```
+
+---
+
+### 6.10 Update User Status
+
+**Endpoint:** `PATCH /api/admin/users/{id}/status`  
+**Auth:** Bearer Token (SUPERADMIN)
+
+> Toggle user active/inactive status.
+
+```json
+// Request Body - Deactivate user
+{
+  "isActive": false
+}
+```
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "User status updated successfully",
+  "data": {
+    "id": 3,
+    "name": "Marketing Jakarta",
+    "email": "marketing.jkt@loan.com",
+    "userType": "INTERNAL",
+    "isActive": false,
+    "branch": {
+      "id": 1,
+      "code": "JKT",
+      "location": "Jakarta"
+    },
+    "roles": ["MARKETING"],
+    "createdAt": "2025-12-22T10:00:00"
+  },
+  "timestamp": "2025-12-22T10:00:00"
+}
+```
+
+> **Note:** Deactivated users cannot login to the system.
+
+---
+
 ## Quick Test Scenarios
 
 ### Scenario 1: Complete Loan Approval Flow

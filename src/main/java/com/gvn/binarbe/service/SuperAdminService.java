@@ -3,6 +3,8 @@ package com.gvn.binarbe.service;
 import com.gvn.binarbe.dto.request.AssignPermissionRequest;
 import com.gvn.binarbe.dto.request.AssignRoleRequest;
 import com.gvn.binarbe.dto.request.CreateInternalUserRequest;
+import com.gvn.binarbe.dto.request.UpdateUserRequest;
+import com.gvn.binarbe.dto.request.UpdateUserStatusRequest;
 import com.gvn.binarbe.dto.response.PermissionResponse;
 import com.gvn.binarbe.dto.response.RoleResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
@@ -74,4 +76,22 @@ public interface SuperAdminService {
    * @return list of permissions
    */
   List<PermissionResponse> getAllPermissions();
+
+  /**
+   * Update user data.
+   *
+   * @param userId user ID
+   * @param request update data
+   * @return updated user
+   */
+  UserResponse updateUser(Long userId, UpdateUserRequest request);
+
+  /**
+   * Update user active status.
+   *
+   * @param userId user ID
+   * @param request status update data
+   * @return updated user
+   */
+  UserResponse updateUserStatus(Long userId, UpdateUserStatusRequest request);
 }

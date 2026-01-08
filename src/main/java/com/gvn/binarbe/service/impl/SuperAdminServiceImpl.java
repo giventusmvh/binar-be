@@ -3,6 +3,8 @@ package com.gvn.binarbe.service.impl;
 import com.gvn.binarbe.dto.request.AssignPermissionRequest;
 import com.gvn.binarbe.dto.request.AssignRoleRequest;
 import com.gvn.binarbe.dto.request.CreateInternalUserRequest;
+import com.gvn.binarbe.dto.request.UpdateUserRequest;
+import com.gvn.binarbe.dto.request.UpdateUserStatusRequest;
 import com.gvn.binarbe.dto.response.*;
 import com.gvn.binarbe.entity.Branch;
 import com.gvn.binarbe.entity.Permission;
@@ -278,5 +280,64 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         .code(permission.getCode())
         .description(permission.getDescription())
         .build();
+  }
+
+  @Override
+  @Transactional
+  public UserResponse updateUser(Long userId, UpdateUserRequest request) {
+    log.info("Updating user with ID: {}", userId);
+
+    User user =
+        userRepository
+            .findByIdWithRolesAndProfile(userId)
+            .orElseThrow(() -> BusinessException.notFound("User not found"));
+
+    // Update name if provided
+    if (request.getName() != null && !request.getName().isBlank()) {
+      user.setName(request.getName());
+    }
+
+    // Update email if provided and different from current
+    if (request.getEmail() != null && !request.getEmail().isBlank()) {
+      if (!request.getEmail().equals(user.getEmail())) {
+        // Check if new email is already in use
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+          throw BusinessException.conflict("Email already exists");
+        }
+        user.setEmail(request.getEmail());
+      }
+    }
+
+    // Update branch if provided
+    if (request.getBranchId() != null) {
+      Branch branch =
+          branchRepository
+              .findById(request.getBranchId())
+              .orElseThrow(() -> BusinessException.notFound("Branch not found"));
+      user.setBranch(branch);
+    }
+
+    user = userRepository.save(user);
+    log.info("User {} updated successfully", userId);
+
+    return mapToUserResponse(user);
+  }
+
+  @Override
+  @Transactional
+  public UserResponse updateUserStatus(Long userId, UpdateUserStatusRequest request) {
+    log.info("Updating status for user ID: {} to isActive: {}", userId, request.getIsActive());
+
+    User user =
+        userRepository
+            .findByIdWithRolesAndProfile(userId)
+            .orElseThrow(() -> BusinessException.notFound("User not found"));
+
+    user.setIsActive(request.getIsActive());
+    user = userRepository.save(user);
+
+    log.info("User {} status updated to isActive: {}", userId, request.getIsActive());
+
+    return mapToUserResponse(user);
   }
 }

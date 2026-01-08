@@ -1220,6 +1220,42 @@ curl -X PUT "$BASE_URL/api/admin/roles/2/permissions" \
   -d '{"permissionIds": [5, 9, 15, 17, 19]}'
 ```
 
+### 6.9 Update User
+
+```bash
+# ✅ Success - Update user data (all fields optional)
+curl -X PUT "$BASE_URL/api/admin/users/3" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{
+    "name": "Marketing Jakarta Updated",
+    "email": "marketing.jkt.updated@loan.com",
+    "branchId": 2
+  }'
+
+# Response: 200 OK
+# User updated successfully with new data
+```
+
+### 6.10 Update User Status
+
+```bash
+# ✅ Success - Deactivate user
+curl -X PATCH "$BASE_URL/api/admin/users/3/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"isActive": false}'
+
+# Response: 200 OK
+# User status updated successfully
+
+# ✅ Success - Reactivate user
+curl -X PATCH "$BASE_URL/api/admin/users/3/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"isActive": true}'
+```
+
 ---
 
 ## 7. Edge Cases & Error Scenarios

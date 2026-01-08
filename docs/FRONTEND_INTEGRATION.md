@@ -482,6 +482,29 @@ SUBMITTED → MARKETING_APPROVED → BRANCH_MANAGER_APPROVED → APPROVED
 { "permissionIds": [1, 2, 3, 5, 9] }
 ```
 
+#### Update User
+
+**Endpoint:** `PUT /api/admin/users/{userId}`
+
+```json
+// Request (all fields optional)
+{
+  "name": "Updated Name",
+  "email": "updated@email.com",
+  "branchId": 2
+}
+```
+
+#### Update User Status
+
+**Endpoint:** `PATCH /api/admin/users/{userId}/status`
+
+```json
+{ "isActive": false }
+```
+
+> **Note:** Deactivated users cannot login.
+
 ---
 
 ## 5. API Reference

@@ -3,6 +3,8 @@ package com.gvn.binarbe.controller;
 import com.gvn.binarbe.dto.request.AssignPermissionRequest;
 import com.gvn.binarbe.dto.request.AssignRoleRequest;
 import com.gvn.binarbe.dto.request.CreateInternalUserRequest;
+import com.gvn.binarbe.dto.request.UpdateUserRequest;
+import com.gvn.binarbe.dto.request.UpdateUserStatusRequest;
 import com.gvn.binarbe.dto.response.PermissionResponse;
 import com.gvn.binarbe.dto.response.RoleResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
@@ -92,5 +94,21 @@ public class SuperAdminController {
   public ResponseEntity<ApiResponse<List<PermissionResponse>>> getAllPermissions() {
     List<PermissionResponse> response = superAdminService.getAllPermissions();
     return ResponseUtil.ok(response);
+  }
+
+  /** Update user data. PUT /api/admin/users/{id} Requires SUPERADMIN role. */
+  @PutMapping("/users/{id}")
+  public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+      @PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+    UserResponse response = superAdminService.updateUser(id, request);
+    return ResponseUtil.ok("User updated successfully", response);
+  }
+
+  /** Update user active status. PATCH /api/admin/users/{id}/status Requires SUPERADMIN role. */
+  @PatchMapping("/users/{id}/status")
+  public ResponseEntity<ApiResponse<UserResponse>> updateUserStatus(
+      @PathVariable Long id, @Valid @RequestBody UpdateUserStatusRequest request) {
+    UserResponse response = superAdminService.updateUserStatus(id, request);
+    return ResponseUtil.ok("User status updated successfully", response);
   }
 }

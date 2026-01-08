@@ -180,6 +180,8 @@ Customer submits loan
 | ------ | ------------------------------------------ | ----------------------- |
 | GET    | `/api/admin/users`                         | List all users          |
 | GET    | `/api/admin/users/{id}`                    | Get user details        |
+| PUT    | `/api/admin/users/{id}`                    | Update user data        |
+| PATCH  | `/api/admin/users/{id}/status`             | Update user status      |
 | POST   | `/api/admin/users/{id}/roles`              | Assign role             |
 | DELETE | `/api/admin/users/{userId}/roles/{roleId}` | Remove role             |
 | GET    | `/api/admin/roles`                         | List all roles          |

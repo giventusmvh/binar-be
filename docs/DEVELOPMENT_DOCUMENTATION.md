@@ -675,6 +675,8 @@ ADMIN ENDPOINTS (ROLE_SUPERADMIN):
 POST   /api/admin/users               - Create internal user (with role + branch)
 GET    /api/admin/users               - List users
 GET    /api/admin/users/{id}          - User details
+PUT    /api/admin/users/{id}          - Update user data
+PATCH  /api/admin/users/{id}/status   - Update user status
 POST   /api/admin/users/{id}/roles    - Assign role
 DELETE /api/admin/users/{uid}/roles/{rid} - Remove role
 GET    /api/admin/roles               - List roles
