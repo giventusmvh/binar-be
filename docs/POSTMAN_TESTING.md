@@ -1330,6 +1330,92 @@ if (pm.response.code === 201) {
 
 ---
 
+### 7.5 Create Branch
+
+**Endpoint:** `POST /api/admin/branches`  
+**Auth:** Bearer Token (SUPERADMIN)
+
+```json
+// Request Body
+{
+  "code": "YGY",
+  "location": "Yogyakarta"
+}
+```
+
+```json
+// Success Response (201 Created)
+{
+  "success": true,
+  "message": "Branch created successfully",
+  "data": {
+    "id": 4,
+    "code": "YGY",
+    "location": "Yogyakarta"
+  },
+  "timestamp": "2025-12-29T10:00:00"
+}
+```
+
+---
+
+### 7.6 Update Branch
+
+**Endpoint:** `PUT /api/admin/branches/{id}`  
+**Auth:** Bearer Token (SUPERADMIN)
+
+```json
+// Request Body
+{
+  "code": "YGY-UPD",
+  "location": "Yogyakarta Updated"
+}
+```
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "Branch updated successfully",
+  "data": {
+    "id": 4,
+    "code": "YGY-UPD",
+    "location": "Yogyakarta Updated"
+  },
+  "timestamp": "2025-12-29T10:00:00"
+}
+```
+
+---
+
+### 7.7 Delete Branch
+
+**Endpoint:** `DELETE /api/admin/branches/{id}`  
+**Auth:** Bearer Token (SUPERADMIN)
+
+> **Note:** Cannot delete branch if it has assigned users.
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "Branch deleted successfully",
+  "data": null,
+  "timestamp": "2025-12-29T10:00:00"
+}
+```
+
+```json
+// Error Response - Constraint Violation (409)
+{
+  "success": false,
+  "message": "Cannot delete branch that has assigned users",
+  "timestamp": "2025-12-29T10:00:00"
+}
+```
+
+---
+
 ## Error Response Reference
 
 | Endpoint                    | Error               | Status | Message                                             |
