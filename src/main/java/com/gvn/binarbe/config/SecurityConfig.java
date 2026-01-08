@@ -49,6 +49,8 @@ public class SecurityConfig {
                     .hasRole("SUPERADMIN")
                     .requestMatchers("/api/admin/branches/**")
                     .hasRole("SUPERADMIN")
+                    .requestMatchers("/api/users/**")
+                    .hasAnyRole("SUPERADMIN", "MARKETING", "BRANCH_MANAGER", "BACKOFFICE")
 
                     // All other requests require authentication
                     // Permission-based access control is handled by @PreAuthorize

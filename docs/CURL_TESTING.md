@@ -903,6 +903,54 @@ curl -X GET "$BASE_URL/api/customer/plafond" \
 }
 ```
 
+### 5.7 Staff Access to User Details
+
+```bash
+# ✅ Staff (Marketing, BM, Backoffice, Superadmin) can view user details
+# Login as Marketing
+MARKETING_TOKEN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "marketing.jkt@loan.com", "password": "marketing123"}' \
+  | jq -r '.data.token')
+
+# Get customer details by ID
+curl -X GET "$BASE_URL/api/users/8" \
+  -H "Authorization: Bearer $MARKETING_TOKEN"
+
+# Response: 200 OK
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": 8,
+    "name": "John Doe",
+    "email": "john.doe@email.com",
+    "userType": "CUSTOMER",
+    "isActive": true,
+    "branch": null,
+    "profile": {
+      "id": 1,
+      "birthdate": "1990-05-15",
+      "phone": "081234567890",
+      "address": "Jl. Sudirman No. 123, Jakarta Pusat",
+      "nik": "3174051505900001",
+      "isComplete": true
+    },
+    "roles": ["CUSTOMER"],
+    "createdAt": "2025-12-31T18:07:25.654186"
+  },
+  "timestamp": "2026-01-01T12:15:00.000000"
+}
+```
+
+```bash
+# ❌ Customer cannot access this endpoint
+curl -X GET "$BASE_URL/api/users/8" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN"
+
+# Response: 403 Forbidden
+```
+
 ---
 
 ## 6. SuperAdmin Operations
@@ -1416,9 +1464,10 @@ echo -e "\n=== Done! ==="
 | Loan Submission          | 2         | ✅ 2   |
 | Approval Workflow        | 4         | ✅ 4   |
 | Loan History             | 1         | ✅ 1   |
+| Staff Access             | 2         | ✅ 2   |
 | SuperAdmin APIs          | 4         | ✅ 4   |
 | Edge Cases               | 4         | ✅ 4   |
-| **Total**                | **32**    | **32** |
+| **Total**                | **34**    | **34** |
 
 ---
 

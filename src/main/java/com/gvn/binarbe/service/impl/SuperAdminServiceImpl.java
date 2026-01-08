@@ -13,6 +13,7 @@ import com.gvn.binarbe.entity.User;
 import com.gvn.binarbe.enums.RoleName;
 import com.gvn.binarbe.enums.UserType;
 import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.mapper.UserMapper;
 import com.gvn.binarbe.repository.BranchRepository;
 import com.gvn.binarbe.repository.PermissionRepository;
 import com.gvn.binarbe.repository.RoleRepository;
@@ -39,6 +40,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
   private final PermissionRepository permissionRepository;
   private final BranchRepository branchRepository;
   private final PasswordEncoder passwordEncoder;
+  private final UserMapper userMapper;
 
   @Override
   @Transactional
@@ -95,25 +97,15 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     user = userRepository.save(user);
     log.info("Internal user created successfully with ID: {}", user.getId());
 
-    return mapToUserResponse(user);
+    return userMapper.toUserResponse(user);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<UserResponse> getAllUsers() {
     return userRepository.findAll().stream()
-        .map(this::mapToUserResponse)
+        .map(userMapper::toUserResponse)
         .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public UserResponse getUserById(Long userId) {
-    User user =
-        userRepository
-            .findByIdWithRolesAndProfile(userId)
-            .orElseThrow(() -> BusinessException.notFound("User not found"));
-    return mapToUserResponse(user);
   }
 
   @Override
@@ -141,7 +133,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
     log.info("Role {} assigned to user {}", role.getName(), userId);
 
-    return mapToUserResponse(user);
+    return userMapper.toUserResponse(user);
   }
 
   @Override
@@ -169,14 +161,14 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
     log.info("Role {} removed from user {}", role.getName(), userId);
 
-    return mapToUserResponse(user);
+    return userMapper.toUserResponse(user);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<RoleResponse> getAllRoles() {
     return roleRepository.findAll().stream()
-        .map(this::mapToRoleResponse)
+        .map(userMapper::toRoleResponse)
         .collect(Collectors.toList());
   }
 
@@ -202,73 +194,15 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
     log.info("Permissions updated for role {}", role.getName());
 
-    return mapToRoleResponse(role);
+    return userMapper.toRoleResponse(role);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<PermissionResponse> getAllPermissions() {
     return permissionRepository.findAll().stream()
-        .map(this::mapToPermissionResponse)
+        .map(userMapper::toPermissionResponse)
         .collect(Collectors.toList());
-  }
-
-  private UserResponse mapToUserResponse(User user) {
-    return UserResponse.builder()
-        .id(user.getId())
-        .name(user.getName())
-        .email(user.getEmail())
-        .userType(user.getUserType())
-        .isActive(user.getIsActive())
-        .branch(user.getBranch() != null ? mapToBranchResponse(user.getBranch()) : null)
-        .profile(user.getProfile() != null ? mapToProfileResponse(user.getProfile()) : null)
-        .roles(
-            user.getRoles().stream()
-                .map(role -> role.getName().name())
-                .collect(Collectors.toList()))
-        .createdAt(user.getCreatedAt())
-        .build();
-  }
-
-  private UserProfileResponse mapToProfileResponse(com.gvn.binarbe.entity.UserProfile profile) {
-    return UserProfileResponse.builder()
-        .id(profile.getId())
-        .birthdate(profile.getBirthdate())
-        .phone(profile.getPhone())
-        .address(profile.getAddress())
-        .nik(profile.getNik())
-        .isComplete(profile.isComplete())
-        .ktpUrl(profile.getKtpPath() != null ? "/uploads/" + profile.getKtpPath() : null)
-        .kkUrl(profile.getKkPath() != null ? "/uploads/" + profile.getKkPath() : null)
-        .npwpUrl(profile.getNpwpPath() != null ? "/uploads/" + profile.getNpwpPath() : null)
-        .build();
-  }
-
-  private BranchResponse mapToBranchResponse(com.gvn.binarbe.entity.Branch branch) {
-    return BranchResponse.builder()
-        .id(branch.getId())
-        .code(branch.getCode())
-        .location(branch.getLocation())
-        .build();
-  }
-
-  private RoleResponse mapToRoleResponse(Role role) {
-    return RoleResponse.builder()
-        .id(role.getId())
-        .name(role.getName().name())
-        .permissions(
-            role.getPermissions().stream()
-                .map(this::mapToPermissionResponse)
-                .collect(Collectors.toList()))
-        .build();
-  }
-
-  private PermissionResponse mapToPermissionResponse(Permission permission) {
-    return PermissionResponse.builder()
-        .id(permission.getId())
-        .code(permission.getCode())
-        .description(permission.getDescription())
-        .build();
   }
 
   @Override
@@ -309,7 +243,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     user = userRepository.save(user);
     log.info("User {} updated successfully", userId);
 
-    return mapToUserResponse(user);
+    return userMapper.toUserResponse(user);
   }
 
   @Override
@@ -327,6 +261,6 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
     log.info("User {} status updated to isActive: {}", userId, request.getIsActive());
 
-    return mapToUserResponse(user);
+    return userMapper.toUserResponse(user);
   }
 }

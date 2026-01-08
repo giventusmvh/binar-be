@@ -7,6 +7,8 @@ import com.gvn.binarbe.dto.response.LoanHistoryResponse;
 import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.entity.*;
 import com.gvn.binarbe.enums.LoanStatus;
+import com.gvn.binarbe.enums.RoleName;
+import com.gvn.binarbe.enums.UserType;
 import com.gvn.binarbe.exception.BusinessException;
 import com.gvn.binarbe.repository.*;
 import com.gvn.binarbe.service.LoanApplicationService;
@@ -163,9 +165,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
   @Override
   @Transactional(readOnly = true)
   public LoanApplicationResponse getLoanById(String email, Long loanId) {
-    User customer =
+    User user =
         userRepository
-            .findByEmail(email)
+            .findByEmailWithRoles(email)
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
     LoanApplication loan =
@@ -173,10 +175,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .findByIdWithDetails(loanId)
             .orElseThrow(() -> BusinessException.notFound("Loan application not found"));
 
-    // Verify ownership
-    if (!loan.getCustomer().getId().equals(customer.getId())) {
-      throw BusinessException.forbidden("You don't have access to this loan application");
-    }
+    validateLoanAccess(user, loan);
 
     return mapToLoanResponse(loan);
   }
@@ -184,9 +183,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
   @Override
   @Transactional(readOnly = true)
   public List<LoanHistoryResponse> getLoanHistory(String email, Long loanId) {
-    User customer =
+    User user =
         userRepository
-            .findByEmail(email)
+            .findByEmailWithRoles(email)
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
     LoanApplication loan =
@@ -194,14 +193,39 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .findById(loanId)
             .orElseThrow(() -> BusinessException.notFound("Loan application not found"));
 
-    // Verify ownership
-    if (!loan.getCustomer().getId().equals(customer.getId())) {
-      throw BusinessException.forbidden("You don't have access to this loan application");
-    }
+    validateLoanAccess(user, loan);
 
     return historyRepository.findByLoanApplicationIdWithApprover(loanId).stream()
         .map(this::mapToHistoryResponse)
         .collect(Collectors.toList());
+  }
+
+  private void validateLoanAccess(User user, LoanApplication loan) {
+    // 1. Owner always has access
+    if (loan.getCustomer().getId().equals(user.getId())) {
+      return;
+    }
+
+    // 2. Check internal roles
+    if (user.getUserType() == UserType.INTERNAL) {
+      // Superadmin and Backoffice can see all
+      boolean canSeeAll =
+          user.getRoles().stream()
+              .anyMatch(
+                  r -> r.getName() == RoleName.SUPERADMIN || r.getName() == RoleName.BACKOFFICE);
+
+      if (canSeeAll) return;
+
+      // Marketing and Branch Manager can see same branch
+      boolean sameBranch =
+          user.getBranch() != null
+              && loan.getBranch() != null
+              && user.getBranch().getId().equals(loan.getBranch().getId());
+
+      if (sameBranch) return;
+    }
+
+    throw BusinessException.forbidden("You don't have access to this loan application");
   }
 
   private LoanApplicationResponse mapToLoanResponse(LoanApplication loan) {

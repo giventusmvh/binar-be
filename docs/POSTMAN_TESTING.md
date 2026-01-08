@@ -674,7 +674,7 @@ if (pm.response.code === 201) {
 ### 4.3 Get Loan by ID
 
 **Endpoint:** `GET /api/loans/{id}`  
-**Auth:** Bearer Token (CUSTOMER - owner only)
+**Auth:** Bearer Token (CUSTOMER, MARKETING, BRANCH_MANAGER, BACKOFFICE, SUPERADMIN)
 
 ```json
 // Success Response (200 OK)
@@ -704,7 +704,7 @@ if (pm.response.code === 201) {
 ### 4.4 Get Loan History
 
 **Endpoint:** `GET /api/loans/{id}/history`  
-**Auth:** Bearer Token (CUSTOMER - owner only)
+**Auth:** Bearer Token (CUSTOMER, MARKETING, BRANCH_MANAGER, BACKOFFICE, SUPERADMIN)
 
 ```json
 // Success Response (200 OK)
@@ -992,32 +992,6 @@ if (pm.response.code === 201) {
       "branchName": "Jakarta"
     }
   ],
-  "timestamp": "2025-12-22T10:00:00"
-}
-```
-
----
-
-### 6.3 Get User by ID
-
-**Endpoint:** `GET /api/admin/users/{id}`  
-**Auth:** Bearer Token (SUPERADMIN)
-
-```json
-// Success Response (200 OK)
-{
-  "success": true,
-  "message": "Success",
-  "data": {
-    "id": 2,
-    "name": "Marketing Jakarta",
-    "email": "marketing.jkt@loan.com",
-    "userType": "INTERNAL",
-    "isActive": true,
-    "roles": ["MARKETING"],
-    "branchId": 1,
-    "branchName": "Jakarta"
-  },
   "timestamp": "2025-12-22T10:00:00"
 }
 ```
@@ -1458,4 +1432,42 @@ if (pm.response.code === 201) {
 
 ---
 
-_Documentation updated: 2026-01-07_
+## 8. Shared Staff Operations
+
+### 8.1 Get User Detail
+
+**Endpoint:** `GET /api/users/{id}`  
+**Auth:** Bearer Token (SUPERADMIN, MARKETING, BRANCH_MANAGER, BACKOFFICE)
+
+> Shared endpoint for staff to view user details (customer or internal).
+>
+> - **SUPERADMIN**: Can view all users.
+> - **MARKETING/BRANCH_MANAGER/BACKOFFICE**: Can view details to facilitate loan processing (e.g. checking customer profile).
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@email.com",
+    "userType": "CUSTOMER",
+    "isActive": true,
+    "roles": ["CUSTOMER"],
+    "profile": {
+      "nik": "3201234567890001",
+      "birthdate": "1990-05-15",
+      "phoneNumber": "+6281234567890",
+      "address": "Jl. Sudirman No. 123, Jakarta",
+      "isComplete": true
+    }
+  },
+  "timestamp": "2025-12-22T10:00:00"
+}
+```
+
+---
+
+_Documentation updated: 2026-01-08_

@@ -8,6 +8,7 @@ import com.gvn.binarbe.dto.response.UserResponse;
 import com.gvn.binarbe.entity.User;
 import com.gvn.binarbe.entity.UserProfile;
 import com.gvn.binarbe.enums.UserType;
+import com.gvn.binarbe.mapper.UserMapper;
 import com.gvn.binarbe.repository.BranchRepository;
 import com.gvn.binarbe.repository.PermissionRepository;
 import com.gvn.binarbe.repository.RoleRepository;
@@ -33,6 +34,7 @@ class SuperAdminServiceImplTest {
   @Mock private PermissionRepository permissionRepository;
   @Mock private BranchRepository branchRepository;
   @Mock private PasswordEncoder passwordEncoder;
+  @Mock private UserMapper userMapper;
 
   @InjectMocks private SuperAdminServiceImpl superAdminService;
 
@@ -68,10 +70,14 @@ class SuperAdminServiceImplTest {
   }
 
   @Test
-  @DisplayName("Should return user list with documents mapped in profile")
-  void getAllUsers_ShouldIncludeProfileDocuments() {
+  @DisplayName("Should return user list with mapped response")
+  void getAllUsers_ShouldReturnUserList() {
     // Arrange
     when(userRepository.findAll()).thenReturn(Collections.singletonList(testUser));
+
+    UserResponse mockResponse = UserResponse.builder().id(1L).name("Test User").build();
+
+    when(userMapper.toUserResponse(testUser)).thenReturn(mockResponse);
 
     // Act
     List<UserResponse> responses = superAdminService.getAllUsers();
@@ -79,10 +85,6 @@ class SuperAdminServiceImplTest {
     // Assert
     assertNotNull(responses);
     assertEquals(1, responses.size());
-    UserResponse response = responses.get(0);
-    assertNotNull(response.getProfile());
-    assertEquals("/uploads/ktp.jpg", response.getProfile().getKtpUrl());
-    assertEquals("/uploads/kk.jpg", response.getProfile().getKkUrl());
-    assertEquals("/uploads/npwp.jpg", response.getProfile().getNpwpUrl());
+    assertEquals(mockResponse, responses.get(0));
   }
 }

@@ -46,13 +46,6 @@ public class SuperAdminController {
     return ResponseUtil.ok(response);
   }
 
-  /** Get user details by ID. GET /api/admin/users/{id} Requires SUPERADMIN role. */
-  @GetMapping("/users/{id}")
-  public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
-    UserResponse response = superAdminService.getUserById(id);
-    return ResponseUtil.ok(response);
-  }
-
   /** Assign a role to a user. POST /api/admin/users/{id}/roles Requires SUPERADMIN role. */
   @PostMapping("/users/{id}/roles")
   public ResponseEntity<ApiResponse<UserResponse>> assignRole(

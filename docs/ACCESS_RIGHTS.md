@@ -521,20 +521,20 @@ public class LoanApplicationController {
     // ...
   }
 
-  /** Lihat detail pinjaman - butuh permission LOAN_READ */
+  /** Lihat detail pinjaman - butuh permission LOAN_READ atau LOAN_READ_BRANCH */
   @GetMapping("/{id}")
-  @PreAuthorize("hasAuthority('LOAN_READ')")
+  @PreAuthorize("hasAnyAuthority('LOAN_READ', 'LOAN_READ_BRANCH')")
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> getLoanById(
       @AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
-    // ...
+    // Service layer validates branch access for LOAN_READ_BRANCH
   }
 
-  /** Lihat history approval - butuh permission LOAN_READ */
+  /** Lihat history approval - butuh permission LOAN_READ atau LOAN_READ_BRANCH */
   @GetMapping("/{id}/history")
-  @PreAuthorize("hasAuthority('LOAN_READ')")
+  @PreAuthorize("hasAnyAuthority('LOAN_READ', 'LOAN_READ_BRANCH')")
   public ResponseEntity<ApiResponse<List<LoanHistoryResponse>>> getLoanHistory(
       @AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
-    // ...
+    // Service layer validates branch access for LOAN_READ_BRANCH
   }
 }
 ```
@@ -709,21 +709,22 @@ public class FileController {
 
 ### Protected Endpoints (Butuh Login + Permission)
 
-| Endpoint                     | Method | Permission/Role                     | Role yang Memiliki                    |
-| ---------------------------- | ------ | ----------------------------------- | ------------------------------------- |
-| `/api/loans`                 | POST   | `LOAN_CREATE`                       | Customer                              |
-| `/api/loans`                 | GET    | `LOAN_READ`                         | Customer                              |
-| `/api/loans/{id}`            | GET    | `LOAN_READ`                         | Customer                              |
-| `/api/loans/{id}/history`    | GET    | `LOAN_READ`                         | Customer                              |
-| `/api/approval/pending`      | GET    | `LOAN_READ_BRANCH`, `LOAN_READ_ALL` | Marketing, Branch Manager, Backoffice |
-| `/api/approval/{id}/approve` | POST   | `LOAN_APPROVE_*`                    | Marketing, Branch Manager, Backoffice |
-| `/api/approval/{id}/reject`  | POST   | `LOAN_REJECT`                       | Marketing, Branch Manager, Backoffice |
-| `/api/customer/profile`      | GET    | `PROFILE_READ`                      | Customer                              |
-| `/api/customer/profile`      | PUT    | `PROFILE_UPDATE`                    | Customer                              |
-| `/api/customer/plafond`      | POST   | `PLAFOND_SELECT`                    | Customer                              |
-| `/api/customer/plafond`      | GET    | `PLAFOND_READ`                      | Customer                              |
-| `/api/admin/**`              | ALL    | Role `SUPERADMIN`                   | Superadmin                            |
-| `/uploads/{filename}`        | GET    | Authenticated (Staff or Owner)      | All authenticated users (conditional) |
+| Endpoint                     | Method | Permission/Role                     | Role yang Memiliki                                          |
+| ---------------------------- | ------ | ----------------------------------- | ----------------------------------------------------------- |
+| `/api/loans`                 | POST   | `LOAN_CREATE`                       | Customer                                                    |
+| `/api/loans`                 | GET    | `LOAN_READ`                         | Customer                                                    |
+| `/api/loans/{id}`            | GET    | `LOAN_READ`, `LOAN_READ_BRANCH`     | Customer, Marketing, Branch Manager, Backoffice, Superadmin |
+| `/api/loans/{id}/history`    | GET    | `LOAN_READ`, `LOAN_READ_BRANCH`     | Customer, Marketing, Branch Manager, Backoffice, Superadmin |
+| `/api/approval/pending`      | GET    | `LOAN_READ_BRANCH`, `LOAN_READ_ALL` | Marketing, Branch Manager, Backoffice                       |
+| `/api/approval/{id}/approve` | POST   | `LOAN_APPROVE_*`                    | Marketing, Branch Manager, Backoffice                       |
+| `/api/approval/{id}/reject`  | POST   | `LOAN_REJECT`                       | Marketing, Branch Manager, Backoffice                       |
+| `/api/customer/profile`      | GET    | `PROFILE_READ`                      | Customer                                                    |
+| `/api/customer/profile`      | PUT    | `PROFILE_UPDATE`                    | Customer                                                    |
+| `/api/customer/plafond`      | POST   | `PLAFOND_SELECT`                    | Customer                                                    |
+| `/api/customer/plafond`      | GET    | `PLAFOND_READ`                      | Customer                                                    |
+| `/api/users/{id}`            | GET    | Shared Staff Access                 | Superadmin, Marketing, Branch Manager, Backoffice           |
+| `/api/admin/**`              | ALL    | Role `SUPERADMIN`                   | Superadmin                                                  |
+| `/uploads/{filename}`        | GET    | Authenticated (Staff or Owner)      | All authenticated users (conditional)                       |
 
 ### Role-Permission Matrix
 

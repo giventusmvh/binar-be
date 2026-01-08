@@ -20,7 +20,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
   List<User> findByBranchId(Long branchId);
 
-  @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.email = :email")
+  @Query(
+      "SELECT u FROM User u LEFT JOIN FETCH u.roles LEFT JOIN FETCH u.branch WHERE u.email = :email")
   Optional<User> findByEmailWithRoles(@Param("email") String email);
 
   @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles LEFT JOIN FETCH u.profile WHERE u.id = :id")

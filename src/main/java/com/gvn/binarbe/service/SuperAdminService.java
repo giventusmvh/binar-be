@@ -29,14 +29,6 @@ public interface SuperAdminService {
   List<UserResponse> getAllUsers();
 
   /**
-   * Get user by ID.
-   *
-   * @param userId user ID
-   * @return user details
-   */
-  UserResponse getUserById(Long userId);
-
-  /**
    * Assign a role to a user.
    *
    * @param userId user ID
