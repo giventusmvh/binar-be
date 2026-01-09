@@ -297,10 +297,13 @@ if (role == RoleName.BACKOFFICE) {
                              │ requested_rate                                   │
                              │ customer_name_snapshot    ─┐                     │
                              │ customer_email_snapshot    │                     │
-                             │ customer_nik_snapshot      ├─ CUSTOMER SNAPSHOT  │
-                             │ customer_phone_snapshot    │  (preserved at      │
-                             │ customer_address_snapshot  │   submission time)  │
-                             │ customer_birthdate_snapshot┘                     │
+                             │ customer_nik_snapshot      │                     │
+                             │ customer_phone_snapshot    ├─ CUSTOMER SNAPSHOT  │
+                             │ customer_address_snapshot  │  (preserved at      │
+                             │ customer_birthdate_snapshot│   submission time)  │
+                             │ customer_ktp_path_snapshot │                     │
+                             │ customer_kk_path_snapshot  │                     │
+                             │ customer_npwp_path_snapshot┘                     │
                              │ status (enum)                                    │
                              │ created_at, updated_at                           │
                              └─────────────────────┬────────────────────────────┘

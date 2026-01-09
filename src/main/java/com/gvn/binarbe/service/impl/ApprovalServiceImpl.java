@@ -3,6 +3,7 @@ package com.gvn.binarbe.service.impl;
 import com.gvn.binarbe.dto.request.ApprovalRequest;
 import com.gvn.binarbe.dto.response.BranchResponse;
 import com.gvn.binarbe.dto.response.LoanApplicationResponse;
+import com.gvn.binarbe.dto.response.MyApprovalHistoryResponse;
 import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.entity.*;
 import com.gvn.binarbe.enums.LoanStatus;
@@ -223,6 +224,9 @@ public class ApprovalServiceImpl implements ApprovalService {
         .customerPhone(loan.getCustomerPhoneSnapshot())
         .customerAddress(loan.getCustomerAddressSnapshot())
         .customerBirthdate(loan.getCustomerBirthdateSnapshot())
+        .customerKtpPath(loan.getCustomerKtpPathSnapshot())
+        .customerKkPath(loan.getCustomerKkPathSnapshot())
+        .customerNpwpPath(loan.getCustomerNpwpPathSnapshot())
         .product(mapToProductResponse(loan.getProduct()))
         .branch(mapToBranchResponse(loan.getBranch()))
         .requestedAmount(loan.getRequestedAmount())
@@ -249,6 +253,35 @@ public class ApprovalServiceImpl implements ApprovalService {
         .id(branch.getId())
         .code(branch.getCode())
         .location(branch.getLocation())
+        .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<MyApprovalHistoryResponse> getMyApprovalHistory(String email) {
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> BusinessException.notFound("User not found"));
+
+    return historyRepository.findByApprovedByIdWithLoanDetails(user.getId()).stream()
+        .filter(h -> !h.getApprovedByRole().equals("CUSTOMER")) // Exclude customer submissions
+        .map(this::mapToMyHistoryResponse)
+        .collect(Collectors.toList());
+  }
+
+  private MyApprovalHistoryResponse mapToMyHistoryResponse(LoanApplicationHistory h) {
+    LoanApplication loan = h.getLoanApplication();
+    return MyApprovalHistoryResponse.builder()
+        .id(h.getId())
+        .loanId(loan.getId())
+        .customerName(loan.getCustomerNameSnapshot())
+        .productName(loan.getProduct().getName())
+        .loanAmount(loan.getRequestedAmount())
+        .branchLocation(loan.getBranch().getLocation())
+        .actionTaken(h.getStatus())
+        .note(h.getNote())
+        .actionDate(h.getCreatedAt())
         .build();
   }
 }

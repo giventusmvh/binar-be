@@ -28,6 +28,10 @@ public class LoanApplicationResponse {
   private String customerAddress;
   private LocalDate customerBirthdate;
 
+  private String customerKtpPath;
+  private String customerKkPath;
+  private String customerNpwpPath;
+
   private ProductResponse product; // The plafond/product used
   private BranchResponse branch;
   private BigDecimal requestedAmount;

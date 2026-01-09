@@ -127,6 +127,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .customerPhoneSnapshot(profile.getPhone())
             .customerAddressSnapshot(profile.getAddress())
             .customerBirthdateSnapshot(profile.getBirthdate())
+            .customerKtpPathSnapshot(profile.getKtpPath())
+            .customerKkPathSnapshot(profile.getKkPath())
+            .customerNpwpPathSnapshot(profile.getNpwpPath())
             .status(LoanStatus.SUBMITTED)
             .build();
 
@@ -238,6 +241,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         .customerPhone(loan.getCustomerPhoneSnapshot())
         .customerAddress(loan.getCustomerAddressSnapshot())
         .customerBirthdate(loan.getCustomerBirthdateSnapshot())
+        .customerKtpPath(loan.getCustomerKtpPathSnapshot())
+        .customerKkPath(loan.getCustomerKkPathSnapshot())
+        .customerNpwpPath(loan.getCustomerNpwpPathSnapshot())
         .product(mapToProductResponse(loan.getProduct()))
         .branch(mapToBranchResponse(loan.getBranch()))
         .requestedAmount(loan.getRequestedAmount())

@@ -293,6 +293,9 @@ public class LoanApplication {
     private String customerPhoneSnapshot;
     private String customerAddressSnapshot;
     private LocalDate customerBirthdateSnapshot;
+    private String customerKtpPathSnapshot;
+    private String customerKkPathSnapshot;
+    private String customerNpwpPathSnapshot;
 
     @Enumerated(EnumType.STRING)
     private LoanStatus status;

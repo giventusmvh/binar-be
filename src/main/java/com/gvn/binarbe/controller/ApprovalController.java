@@ -2,6 +2,7 @@ package com.gvn.binarbe.controller;
 
 import com.gvn.binarbe.dto.request.ApprovalRequest;
 import com.gvn.binarbe.dto.response.LoanApplicationResponse;
+import com.gvn.binarbe.dto.response.MyApprovalHistoryResponse;
 import com.gvn.binarbe.service.ApprovalService;
 import com.gvn.binarbe.util.ApiResponse;
 import com.gvn.binarbe.util.ResponseUtil;
@@ -70,5 +71,18 @@ public class ApprovalController {
     LoanApplicationResponse response =
         approvalService.reject(userDetails.getUsername(), id, request);
     return ResponseUtil.ok("Loan rejected", response);
+  }
+
+  /**
+   * Get my approval/rejection history. GET /api/approval/my-history Returns all loans this user has
+   * approved or rejected.
+   */
+  @GetMapping("/my-history")
+  @PreAuthorize("hasAnyAuthority('LOAN_READ_BRANCH', 'LOAN_READ_ALL')")
+  public ResponseEntity<ApiResponse<List<MyApprovalHistoryResponse>>> getMyApprovalHistory(
+      @AuthenticationPrincipal UserDetails userDetails) {
+    List<MyApprovalHistoryResponse> response =
+        approvalService.getMyApprovalHistory(userDetails.getUsername());
+    return ResponseUtil.ok(response);
   }
 }

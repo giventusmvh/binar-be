@@ -1206,6 +1206,15 @@ public class LoanApplication implements Serializable {
 
     @Column(name = "customer_birthdate_snapshot")
     private LocalDate customerBirthdateSnapshot;
+
+    @Column(name = "customer_ktp_path_snapshot")
+    private String customerKtpPathSnapshot;
+
+    @Column(name = "customer_kk_path_snapshot")
+    private String customerKkPathSnapshot;
+
+    @Column(name = "customer_npwp_path_snapshot")
+    private String customerNpwpPathSnapshot;
     // ===== END SNAPSHOT =====
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -1320,6 +1329,9 @@ public LoanApplicationResponse submitLoan(String email, SubmitLoanRequest reques
         .customerPhoneSnapshot(profile.getPhone())
         .customerAddressSnapshot(profile.getAddress())
         .customerBirthdateSnapshot(profile.getBirthdate())
+        .customerKtpPathSnapshot(profile.getKtpPath())
+        .customerKkPathSnapshot(profile.getKkPath())
+        .customerNpwpPathSnapshot(profile.getNpwpPath())
         // Data loan
         .product(product)
         .branch(branch)

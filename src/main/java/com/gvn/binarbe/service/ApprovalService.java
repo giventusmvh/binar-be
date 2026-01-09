@@ -2,6 +2,7 @@ package com.gvn.binarbe.service;
 
 import com.gvn.binarbe.dto.request.ApprovalRequest;
 import com.gvn.binarbe.dto.response.LoanApplicationResponse;
+import com.gvn.binarbe.dto.response.MyApprovalHistoryResponse;
 import java.util.List;
 
 /** Service interface for loan approval operations. */
@@ -34,4 +35,12 @@ public interface ApprovalService {
    * @return updated loan application
    */
   LoanApplicationResponse reject(String email, Long loanId, ApprovalRequest request);
+
+  /**
+   * Get approval/rejection history for the current user.
+   *
+   * @param email user email
+   * @return list of approval actions taken by user
+   */
+  List<MyApprovalHistoryResponse> getMyApprovalHistory(String email);
 }

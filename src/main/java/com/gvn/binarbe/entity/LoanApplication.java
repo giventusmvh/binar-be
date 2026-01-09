@@ -68,6 +68,15 @@ public class LoanApplication {
   @Column(name = "customer_birthdate_snapshot")
   private LocalDate customerBirthdateSnapshot;
 
+  @Column(name = "customer_ktp_path_snapshot")
+  private String customerKtpPathSnapshot;
+
+  @Column(name = "customer_kk_path_snapshot")
+  private String customerKkPathSnapshot;
+
+  @Column(name = "customer_npwp_path_snapshot")
+  private String customerNpwpPathSnapshot;
+
   // ==========================================
 
   @Enumerated(EnumType.STRING)

@@ -581,6 +581,9 @@ if (pm.response.code === 201) {
     "customerPhone": "+6281234567890",
     "customerAddress": "Jl. Sudirman No. 123, Jakarta",
     "customerBirthdate": "1990-05-15",
+    "customerKtpPath": "/uploads/documents/uuid-ktp.jpg",
+    "customerKkPath": "/uploads/documents/uuid-kk.jpg",
+    "customerNpwpPath": "/uploads/documents/uuid-npwp.jpg",
     "product": {
       "id": 1,
       "name": "BRONZE",
@@ -872,6 +875,58 @@ if (pm.response.code === 201) {
     ...
   },
   "timestamp": "2025-12-22T10:00:00"
+}
+```
+
+---
+
+### 5.4 Get My Approval History
+
+**Endpoint:** `GET /api/approval/my-history`  
+**Auth:** Bearer Token (MARKETING, BRANCH_MANAGER, or BACKOFFICE)
+
+> Returns all loans that the logged-in user has approved or rejected.
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": 5,
+      "loanId": 1,
+      "customerName": "John Doe",
+      "productName": "BRONZE",
+      "loanAmount": 3000000,
+      "branchLocation": "Jakarta",
+      "actionTaken": "MARKETING_APPROVED",
+      "note": "Documents verified",
+      "actionDate": "2026-01-08T14:30:00"
+    },
+    {
+      "id": 3,
+      "loanId": 2,
+      "customerName": "Jane Smith",
+      "productName": "SILVER",
+      "loanAmount": 5000000,
+      "branchLocation": "Jakarta",
+      "actionTaken": "MARKETING_REJECTED",
+      "note": "Incomplete documents",
+      "actionDate": "2026-01-07T10:15:00"
+    }
+  ],
+  "timestamp": "2026-01-08T15:00:00"
+}
+```
+
+```json
+// Empty Response (200 OK) - No approvals yet
+{
+  "success": true,
+  "message": "Success",
+  "data": [],
+  "timestamp": "2026-01-08T15:00:00"
 }
 ```
 

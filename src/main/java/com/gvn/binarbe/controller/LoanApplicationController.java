@@ -49,7 +49,7 @@ public class LoanApplicationController {
 
   /** Get loan details by ID. GET /api/loans/{id} Requires LOAN_READ permission. */
   @GetMapping("/{id}")
-  @PreAuthorize("hasAnyAuthority('LOAN_READ', 'LOAN_READ_BRANCH')")
+  @PreAuthorize("hasAnyAuthority('LOAN_READ','LOAN_READ_ALL','LOAN_READ_BRANCH')")
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> getLoanById(
       @AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
     LoanApplicationResponse response =
@@ -59,7 +59,7 @@ public class LoanApplicationController {
 
   /** Get approval history for a loan. GET /api/loans/{id}/history Requires LOAN_READ permission. */
   @GetMapping("/{id}/history")
-  @PreAuthorize("hasAnyAuthority('LOAN_READ', 'LOAN_READ_BRANCH')")
+  @PreAuthorize("hasAnyAuthority('LOAN_READ','LOAN_READ_ALL','LOAN_READ_BRANCH')")
   public ResponseEntity<ApiResponse<List<LoanHistoryResponse>>> getLoanHistory(
       @AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
     List<LoanHistoryResponse> response =
