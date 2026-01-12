@@ -72,7 +72,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         switch (role) {
           case MARKETING -> LoanStatus.MARKETING_APPROVED;
           case BRANCH_MANAGER -> LoanStatus.BRANCH_MANAGER_APPROVED;
-          case BACKOFFICE -> LoanStatus.APPROVED;
+          case BACKOFFICE -> LoanStatus.DISBURSED;
           default -> throw BusinessException.forbidden("You don't have approval permission");
         };
 
@@ -81,7 +81,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     loan = loanApplicationRepository.save(loan);
 
     // Deduct remaining amount from plafond when loan is finally approved
-    if (newStatus == LoanStatus.APPROVED) {
+    if (newStatus == LoanStatus.DISBURSED) {
       UserPlafond userPlafond =
           userPlafondRepository
               .findByUserIdWithProduct(loan.getCustomer().getId())
@@ -280,6 +280,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         .loanAmount(loan.getRequestedAmount())
         .branchLocation(loan.getBranch().getLocation())
         .actionTaken(h.getStatus())
+        .currentStatus(loan.getStatus())
         .note(h.getNote())
         .actionDate(h.getCreatedAt())
         .build();

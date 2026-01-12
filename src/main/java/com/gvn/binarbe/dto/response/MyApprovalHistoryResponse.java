@@ -22,6 +22,7 @@ public class MyApprovalHistoryResponse {
   private BigDecimal loanAmount; // Requested amount
   private String branchLocation; // Branch
   private LoanStatus actionTaken; // Status when action was taken
+  private LoanStatus currentStatus; // Current status of the loan
   private String note;
   private LocalDateTime actionDate;
 }

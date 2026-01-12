@@ -3,7 +3,7 @@ package com.gvn.binarbe.enums;
 /**
  * Enum representing the status of a loan application through the approval workflow.
  *
- * <p>Flow: SUBMITTED -> MARKETING_APPROVED -> BRANCH_MANAGER_APPROVED -> APPROVED Any stage can
+ * <p>Flow: SUBMITTED -> MARKETING_APPROVED -> BRANCH_MANAGER_APPROVED -> DISBURSED Any stage can
  * result in REJECTED
  */
 public enum LoanStatus {
@@ -12,6 +12,6 @@ public enum LoanStatus {
   MARKETING_REJECTED, // Rejected by Marketing
   BRANCH_MANAGER_APPROVED, // Approved by Branch Manager
   BRANCH_MANAGER_REJECTED, // Rejected by Branch Manager
-  APPROVED, // Final approval by Backoffice
+  DISBURSED, // Final approval by Backoffice - loan is disbursed
   REJECTED // Final rejection
 }

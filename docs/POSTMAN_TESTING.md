@@ -748,7 +748,7 @@ if (pm.response.code === 201) {
 
 ```
 ┌─────────────┐     ┌────────────────────┐     ┌──────────────────────────┐     ┌──────────┐
-│  SUBMITTED  │────▶│ MARKETING_APPROVED │────▶│ BRANCH_MANAGER_APPROVED  │────▶│ APPROVED │
+│  SUBMITTED  │────▶│ MARKETING_APPROVED │────▶│ BRANCH_MANAGER_APPROVED  │────▶│ DISBURSED │
 └─────────────┘     └────────────────────┘     └──────────────────────────┘     └──────────┘
        │                     │                            │                           │
        │                     │                            │                           │
@@ -843,7 +843,7 @@ if (pm.response.code === 201) {
   "message": "Loan approved successfully",
   "data": {
     "id": 1,
-    "status": "APPROVED",
+    "status": "DISBURSED",
     ...
   },
   "timestamp": "2025-12-22T10:00:00"
@@ -901,6 +901,7 @@ if (pm.response.code === 201) {
       "loanAmount": 3000000,
       "branchLocation": "Jakarta",
       "actionTaken": "MARKETING_APPROVED",
+      "currentStatus": "BRANCH_MANAGER_APPROVED",
       "note": "Documents verified",
       "actionDate": "2026-01-08T14:30:00"
     },
@@ -1340,7 +1341,7 @@ if (pm.response.code === 201) {
 8. **Approve**: `POST /api/approval/{loan_id}/approve`
 9. **Login as Backoffice**: `backoffice@loan.com` / `backoffice123` → Save token
 10. **Get Pending**: `GET /api/approval/pending` → Should see the loan
-11. **Approve**: `POST /api/approval/{loan_id}/approve` → Status becomes APPROVED
+11. **Approve**: `POST /api/approval/{loan_id}/approve` → Status becomes DISBURSED
 12. **Login as Customer**: Verify loan status via `GET /api/loans/{loan_id}`
 
 ### Scenario 2: Plafond Depletion Flow
