@@ -167,7 +167,13 @@ public boolean isComplete() {
     return nik != null && !nik.isEmpty() &&
            birthdate != null &&
            phoneNumber != null && !phoneNumber.isEmpty() &&
-           address != null && !address.isEmpty();
+           address != null && !address.isEmpty() &&
+           ktpPath != null && !ktpPath.isEmpty() &&
+           kkPath != null && !kkPath.isEmpty() &&
+           npwpPath != null && !npwpPath.isEmpty() &&
+           bankName != null && !bankName.isEmpty() &&
+           accountNumber != null && !accountNumber.isEmpty() &&
+           accountHolderName != null && !accountHolderName.isEmpty();
 }
 ```
 
@@ -272,6 +278,12 @@ if (role == RoleName.BACKOFFICE) {
                         │    │ birthdate        │
                         │    │ phone_number     │
                         │    │ address          │
+                        │    │ ktp_path         │
+                        │    │ kk_path          │
+                        │    │ npwp_path        │
+                        │    │ bank_name        │
+                        │    │ account_number   │
+                        │    │ account_holder   │
                         │    └──────────────────┘
                         │
                         │    ┌──────────────────┐         ┌──────────────────┐
@@ -303,7 +315,10 @@ if (role == RoleName.BACKOFFICE) {
                              │ customer_birthdate_snapshot│   submission time)  │
                              │ customer_ktp_path_snapshot │                     │
                              │ customer_kk_path_snapshot  │                     │
-                             │ customer_npwp_path_snapshot┘                     │
+                             │ customer_npwp_path_snapshot│                     │
+                             │ customer_bank_name_snapshot│                     │
+                             │ customer_account_number_snapshot                 │
+                             │ customer_account_holder_snapshot─┘               │
                              │ status (enum)                                    │
                              │ created_at, updated_at                           │
                              └─────────────────────┬────────────────────────────┘

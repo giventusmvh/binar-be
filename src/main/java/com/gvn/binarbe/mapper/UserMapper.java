@@ -41,6 +41,9 @@ public class UserMapper {
         .ktpUrl(profile.getKtpPath() != null ? "/uploads/" + profile.getKtpPath() : null)
         .kkUrl(profile.getKkPath() != null ? "/uploads/" + profile.getKkPath() : null)
         .npwpUrl(profile.getNpwpPath() != null ? "/uploads/" + profile.getNpwpPath() : null)
+        .bankName(profile.getBankName())
+        .accountNumber(profile.getAccountNumber())
+        .accountHolderName(profile.getAccountHolderName())
         .build();
   }
 

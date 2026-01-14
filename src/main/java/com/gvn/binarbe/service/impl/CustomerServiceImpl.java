@@ -79,6 +79,9 @@ public class CustomerServiceImpl implements CustomerService {
     profile.setPhone(request.getPhone());
     profile.setAddress(request.getAddress());
     profile.setNik(request.getNik());
+    profile.setBankName(request.getBankName());
+    profile.setAccountNumber(request.getAccountNumber());
+    profile.setAccountHolderName(request.getAccountHolderName());
 
     if (ktp != null && !ktp.isEmpty()) {
       String ktpFileName = fileStorageService.storeFile(ktp);

@@ -30,4 +30,14 @@ public class UpdateProfileRequest {
   @NotBlank(message = "NIK is required")
   @Pattern(regexp = "^[0-9]{16}$", message = "NIK must be exactly 16 digits")
   private String nik;
+
+  @NotBlank(message = "Bank name is required")
+  private String bankName;
+
+  @NotBlank(message = "Account number is required")
+  @Pattern(regexp = "^[0-9]{10,20}$", message = "Account number must be 10-20 digits")
+  private String accountNumber;
+
+  @NotBlank(message = "Account holder name is required")
+  private String accountHolderName;
 }

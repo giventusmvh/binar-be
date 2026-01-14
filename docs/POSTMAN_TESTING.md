@@ -311,12 +311,12 @@ if (pm.response.code === 201) {
 
 **Body Type:** `form-data`
 
-| Key    | Type | Value                                                                                                                         | Content-Type (Click ... to add) |
-| ------ | ---- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `data` | Text | `{"nik": "3201234567890001", "birthdate": "1990-05-15", "phone": "081234567890", "address": "Jl. Sudirman No. 123, Jakarta"}` | `application/json`              |
-| `ktp`  | File | (Select KTP File)                                                                                                             |                                 |
-| `kk`   | File | (Select KK File)                                                                                                              |                                 |
-| `npwp` | File | (Select NPWP File)                                                                                                            |                                 |
+| Key    | Type | Value                                                                                                                                                                                                            | Content-Type (Click ... to add) |
+| ------ | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `data` | Text | `{"nik": "3201234567890001", "birthdate": "1990-05-15", "phone": "081234567890", "address": "Jl. Sudirman No. 123, Jakarta", "bankName": "BCA", "accountNumber": "1234567890", "accountHolderName": "John Doe"}` | `application/json`              |
+| `ktp`  | File | (Select KTP File)                                                                                                                                                                                                |                                 |
+| `kk`   | File | (Select KK File)                                                                                                                                                                                                 |                                 |
+| `npwp` | File | (Select NPWP File)                                                                                                                                                                                               |                                 |
 
 ```json
 // Success Response (200 OK)
@@ -331,6 +331,9 @@ if (pm.response.code === 201) {
     "ktpUrl": "http://localhost:8080/uploads/uuid-ktp.jpg",
     "kkUrl": "http://localhost:8080/uploads/uuid-kk.jpg",
     "npwpUrl": "http://localhost:8080/uploads/uuid-npwp.jpg",
+    "bankName": "BCA",
+    "accountNumber": "1234567890",
+    "accountHolderName": "John Doe",
     "isComplete": true
   },
   "timestamp": "2025-12-22T10:00:00"
@@ -584,6 +587,9 @@ if (pm.response.code === 201) {
     "customerKtpPath": "/uploads/documents/uuid-ktp.jpg",
     "customerKkPath": "/uploads/documents/uuid-kk.jpg",
     "customerNpwpPath": "/uploads/documents/uuid-npwp.jpg",
+    "customerBankName": "BCA",
+    "customerAccountNumber": "1234567890",
+    "customerAccountHolderName": "John Doe",
     "product": {
       "id": 1,
       "name": "BRONZE",

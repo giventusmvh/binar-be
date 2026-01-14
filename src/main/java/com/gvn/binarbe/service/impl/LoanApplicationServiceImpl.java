@@ -121,6 +121,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .customerKtpPathSnapshot(profile.getKtpPath())
             .customerKkPathSnapshot(profile.getKkPath())
             .customerNpwpPathSnapshot(profile.getNpwpPath())
+            .customerBankNameSnapshot(profile.getBankName())
+            .customerAccountNumberSnapshot(profile.getAccountNumber())
+            .customerAccountHolderNameSnapshot(profile.getAccountHolderName())
             .status(LoanStatus.SUBMITTED)
             .build();
 

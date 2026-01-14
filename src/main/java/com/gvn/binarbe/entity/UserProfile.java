@@ -45,9 +45,19 @@ public class UserProfile {
   @Column(name = "npwp_path")
   private String npwpPath;
 
+  // Bank account information
+  @Column(name = "bank_name", length = 100)
+  private String bankName;
+
+  @Column(name = "account_number", length = 30)
+  private String accountNumber;
+
+  @Column(name = "account_holder_name", length = 100)
+  private String accountHolderName;
+
   /**
    * Check if profile is complete for loan application submission. All fields (birthdate, phone,
-   * address, nik, ktp, kk, npwp) must be filled.
+   * address, nik, ktp, kk, npwp, bank account) must be filled.
    */
   public boolean isComplete() {
     return birthdate != null
@@ -62,6 +72,12 @@ public class UserProfile {
         && kkPath != null
         && !kkPath.isBlank()
         && npwpPath != null
-        && !npwpPath.isBlank();
+        && !npwpPath.isBlank()
+        && bankName != null
+        && !bankName.isBlank()
+        && accountNumber != null
+        && !accountNumber.isBlank()
+        && accountHolderName != null
+        && !accountHolderName.isBlank();
   }
 }

@@ -32,6 +32,11 @@ public class LoanApplicationResponse {
   private String customerKkPath;
   private String customerNpwpPath;
 
+  // Bank account snapshot (preserved from submission time)
+  private String customerBankName;
+  private String customerAccountNumber;
+  private String customerAccountHolderName;
+
   private ProductResponse product; // The plafond/product used
   private BranchResponse branch;
   private BigDecimal requestedAmount;

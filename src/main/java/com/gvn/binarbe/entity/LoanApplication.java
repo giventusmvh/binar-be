@@ -77,6 +77,15 @@ public class LoanApplication {
   @Column(name = "customer_npwp_path_snapshot")
   private String customerNpwpPathSnapshot;
 
+  @Column(name = "customer_bank_name_snapshot", length = 100)
+  private String customerBankNameSnapshot;
+
+  @Column(name = "customer_account_number_snapshot", length = 30)
+  private String customerAccountNumberSnapshot;
+
+  @Column(name = "customer_account_holder_name_snapshot", length = 100)
+  private String customerAccountHolderNameSnapshot;
+
   // ==========================================
 
   @Enumerated(EnumType.STRING)

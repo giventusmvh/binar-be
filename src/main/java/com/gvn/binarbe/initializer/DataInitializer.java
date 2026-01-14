@@ -353,6 +353,9 @@ public class DataInitializer implements CommandLineRunner {
             .phone("081234567890")
             .address("Jl. Sudirman No. 123, Jakarta Pusat")
             .nik("3174051505900001")
+            .bankName("BCA")
+            .accountNumber("1234567890")
+            .accountHolderName("John Doe")
             .build();
     userProfileRepository.save(completeProfile);
 

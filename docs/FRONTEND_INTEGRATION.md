@@ -142,6 +142,12 @@ Authorization: Bearer <jwt_token>
       "birthdate": "1990-05-15",
       "phoneNumber": "+6281234567890",
       "address": "Jl. Sudirman No. 123",
+      "ktpUrl": "http://localhost:8080/uploads/uuid-ktp.jpg",
+      "kkUrl": "http://localhost:8080/uploads/uuid-kk.jpg",
+      "npwpUrl": "http://localhost:8080/uploads/uuid-npwp.jpg",
+      "bankName": "BCA",
+      "accountNumber": "1234567890",
+      "accountHolderName": "John Doe",
       "isComplete": true
     }
   }
@@ -160,9 +166,11 @@ Authorization: Bearer <jwt_token>
     {
       "nik": "3201234567890001",
       "birthdate": "1990-05-15",
-      "//": "...",
       "phone": "081234567890",
-      "address": "Jl. Sudirman No. 123, Jakarta"
+      "address": "Jl. Sudirman No. 123, Jakarta",
+      "bankName": "BCA",
+      "accountNumber": "1234567890",
+      "accountHolderName": "John Doe"
     }
     ```
 2.  **ktp** (Part): File (Optional)

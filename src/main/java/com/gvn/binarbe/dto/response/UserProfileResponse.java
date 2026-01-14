@@ -22,4 +22,9 @@ public class UserProfileResponse {
   private String ktpUrl;
   private String kkUrl;
   private String npwpUrl;
+
+  // Bank account information
+  private String bankName;
+  private String accountNumber;
+  private String accountHolderName;
 }
