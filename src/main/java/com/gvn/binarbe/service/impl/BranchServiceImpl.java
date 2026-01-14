@@ -5,6 +5,7 @@ import com.gvn.binarbe.dto.request.UpdateBranchRequest;
 import com.gvn.binarbe.dto.response.BranchResponse;
 import com.gvn.binarbe.entity.Branch;
 import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.mapper.BranchMapper;
 import com.gvn.binarbe.repository.BranchRepository;
 import com.gvn.binarbe.service.BranchService;
 import java.util.List;
@@ -20,12 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class BranchServiceImpl implements BranchService {
 
   private final BranchRepository branchRepository;
+  private final BranchMapper branchMapper;
 
   @Override
   @Transactional(readOnly = true)
   public List<BranchResponse> getAllBranches() {
     return branchRepository.findAll().stream()
-        .map(this::mapToBranchResponse)
+        .map(branchMapper::toResponse)
         .collect(Collectors.toList());
   }
 
@@ -36,7 +38,7 @@ public class BranchServiceImpl implements BranchService {
         branchRepository
             .findById(id)
             .orElseThrow(() -> BusinessException.notFound("Branch not found"));
-    return mapToBranchResponse(branch);
+    return branchMapper.toResponse(branch);
   }
 
   @Override
@@ -54,7 +56,7 @@ public class BranchServiceImpl implements BranchService {
     branch = branchRepository.save(branch);
     log.info("Branch created successfully with ID: {}", branch.getId());
 
-    return mapToBranchResponse(branch);
+    return branchMapper.toResponse(branch);
   }
 
   @Override
@@ -83,7 +85,7 @@ public class BranchServiceImpl implements BranchService {
     branch = branchRepository.save(branch);
     log.info("Branch updated successfully");
 
-    return mapToBranchResponse(branch);
+    return branchMapper.toResponse(branch);
   }
 
   @Override
@@ -96,27 +98,11 @@ public class BranchServiceImpl implements BranchService {
             .findById(id)
             .orElseThrow(() -> BusinessException.notFound("Branch not found"));
 
-    // Check if branch has users or loan applications before deleting (constraint
-    // check)
     if (!branch.getUsers().isEmpty()) {
       throw BusinessException.conflict("Cannot delete branch that has assigned users");
     }
 
-    // Note: Checking loan applications might be needed too depending on cascade
-    // rules,
-    // but starting with users is safe.
-    // Ideally we catch DataIntegrityViolationException but explicit check is
-    // friendlier.
-
     branchRepository.delete(branch);
     log.info("Branch deleted successfully");
-  }
-
-  private BranchResponse mapToBranchResponse(Branch branch) {
-    return BranchResponse.builder()
-        .id(branch.getId())
-        .code(branch.getCode())
-        .location(branch.getLocation())
-        .build();
   }
 }

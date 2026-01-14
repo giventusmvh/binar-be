@@ -1,15 +1,14 @@
 package com.gvn.binarbe.service.impl;
 
 import com.gvn.binarbe.dto.request.LoanApplicationRequest;
-import com.gvn.binarbe.dto.response.BranchResponse;
 import com.gvn.binarbe.dto.response.LoanApplicationResponse;
 import com.gvn.binarbe.dto.response.LoanHistoryResponse;
-import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.entity.*;
 import com.gvn.binarbe.enums.LoanStatus;
 import com.gvn.binarbe.enums.RoleName;
 import com.gvn.binarbe.enums.UserType;
 import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.mapper.LoanApplicationMapper;
 import com.gvn.binarbe.repository.*;
 import com.gvn.binarbe.service.LoanApplicationService;
 import java.util.List;
@@ -31,6 +30,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
   private final LoanApplicationRepository loanApplicationRepository;
   private final LoanApplicationHistoryRepository historyRepository;
   private final UserPlafondRepository userPlafondRepository;
+  private final LoanApplicationMapper loanApplicationMapper;
 
   @Override
   @Transactional
@@ -42,7 +42,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .findByEmail(email)
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
-    // Check if user has any pending loan applications
     List<LoanStatus> pendingStatuses =
         List.of(
             LoanStatus.SUBMITTED,
@@ -58,7 +57,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
               + "Please wait until it is fully approved or rejected before submitting a new one.");
     }
 
-    // Check if profile is complete
     UserProfile profile =
         userProfileRepository
             .findByUserId(customer.getId())
@@ -73,7 +71,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
               + "Required fields: NIK, birthdate, phone, and address.");
     }
 
-    // Get user's active plafond
     UserPlafond userPlafond =
         userPlafondRepository
             .findByUserIdWithProduct(customer.getId())
@@ -84,20 +81,17 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     Product product = userPlafond.getProduct();
 
-    // Validate requested amount against remaining plafond
     if (request.getAmount().compareTo(userPlafond.getRemainingAmount()) > 0) {
       throw BusinessException.badRequest(
           "Requested amount exceeds remaining plafond. Remaining: Rp "
               + userPlafond.getRemainingAmount());
     }
 
-    // Validate requested tenor against plafond limit
     if (request.getTenor() > product.getTenor()) {
       throw BusinessException.badRequest(
           "Requested tenor exceeds plafond limit. Maximum: " + product.getTenor() + " months");
     }
 
-    // Validate requested interest rate (must be >= plafond rate)
     if (request.getInterestRate().compareTo(product.getInterestRate()) < 0) {
       throw BusinessException.badRequest(
           "Interest rate cannot be lower than plafond minimum rate. Minimum: "
@@ -105,13 +99,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
               + "%");
     }
 
-    // Get branch
     Branch branch =
         branchRepository
             .findById(request.getBranchId())
             .orElseThrow(() -> BusinessException.notFound("Branch not found"));
 
-    // Create loan application with requested values and customer snapshot
     LoanApplication loanApplication =
         LoanApplication.builder()
             .customer(customer)
@@ -120,7 +112,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .requestedAmount(request.getAmount())
             .requestedTenor(request.getTenor())
             .requestedRate(request.getInterestRate())
-            // Snapshot customer data at submission time
             .customerNameSnapshot(customer.getName())
             .customerEmailSnapshot(customer.getEmail())
             .customerNikSnapshot(profile.getNik())
@@ -135,7 +126,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     loanApplication = loanApplicationRepository.save(loanApplication);
 
-    // Create initial history entry
     LoanApplicationHistory history =
         LoanApplicationHistory.builder()
             .loanApplication(loanApplication)
@@ -149,7 +139,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     log.info("Loan application submitted: ID={}", loanApplication.getId());
 
-    return mapToLoanResponse(loanApplication);
+    return loanApplicationMapper.toResponse(loanApplication);
   }
 
   @Override
@@ -161,7 +151,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
     return loanApplicationRepository.findByCustomerIdWithDetails(customer.getId()).stream()
-        .map(this::mapToLoanResponse)
+        .map(loanApplicationMapper::toResponse)
         .collect(Collectors.toList());
   }
 
@@ -180,7 +170,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     validateLoanAccess(user, loan);
 
-    return mapToLoanResponse(loan);
+    return loanApplicationMapper.toResponse(loan);
   }
 
   @Override
@@ -199,19 +189,16 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     validateLoanAccess(user, loan);
 
     return historyRepository.findByLoanApplicationIdWithApprover(loanId).stream()
-        .map(this::mapToHistoryResponse)
+        .map(loanApplicationMapper::toHistoryResponse)
         .collect(Collectors.toList());
   }
 
   private void validateLoanAccess(User user, LoanApplication loan) {
-    // 1. Owner always has access
     if (loan.getCustomer().getId().equals(user.getId())) {
       return;
     }
 
-    // 2. Check internal roles
     if (user.getUserType() == UserType.INTERNAL) {
-      // Superadmin and Backoffice can see all
       boolean canSeeAll =
           user.getRoles().stream()
               .anyMatch(
@@ -219,7 +206,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
       if (canSeeAll) return;
 
-      // Marketing and Branch Manager can see same branch
       boolean sameBranch =
           user.getBranch() != null
               && loan.getBranch() != null
@@ -229,62 +215,5 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     }
 
     throw BusinessException.forbidden("You don't have access to this loan application");
-  }
-
-  private LoanApplicationResponse mapToLoanResponse(LoanApplication loan) {
-    return LoanApplicationResponse.builder()
-        .id(loan.getId())
-        // Use snapshot data (preserved from submission time)
-        .customerName(loan.getCustomerNameSnapshot())
-        .customerEmail(loan.getCustomerEmailSnapshot())
-        .customerNik(loan.getCustomerNikSnapshot())
-        .customerPhone(loan.getCustomerPhoneSnapshot())
-        .customerAddress(loan.getCustomerAddressSnapshot())
-        .customerBirthdate(loan.getCustomerBirthdateSnapshot())
-        .customerKtpPath(loan.getCustomerKtpPathSnapshot())
-        .customerKkPath(loan.getCustomerKkPathSnapshot())
-        .customerNpwpPath(loan.getCustomerNpwpPathSnapshot())
-        .product(mapToProductResponse(loan.getProduct()))
-        .branch(mapToBranchResponse(loan.getBranch()))
-        .requestedAmount(loan.getRequestedAmount())
-        .requestedTenor(loan.getRequestedTenor())
-        .requestedRate(loan.getRequestedRate())
-        .status(loan.getStatus())
-        .createdAt(loan.getCreatedAt())
-        .updatedAt(loan.getUpdatedAt())
-        .build();
-  }
-
-  private LoanHistoryResponse mapToHistoryResponse(LoanApplicationHistory history) {
-    return LoanHistoryResponse.builder()
-        .id(history.getId())
-        .approvedByName(history.getApprovedBy().getName())
-        .approvedByRole(history.getApprovedByRole())
-        .approvedByBranch(
-            history.getApprovedByBranchId() != null
-                ? "Branch ID: " + history.getApprovedByBranchId()
-                : "N/A")
-        .status(history.getStatus())
-        .note(history.getNote())
-        .createdAt(history.getCreatedAt())
-        .build();
-  }
-
-  private ProductResponse mapToProductResponse(Product product) {
-    return ProductResponse.builder()
-        .id(product.getId())
-        .name(product.getName())
-        .amount(product.getAmount())
-        .tenor(product.getTenor())
-        .interestRate(product.getInterestRate())
-        .build();
-  }
-
-  private BranchResponse mapToBranchResponse(Branch branch) {
-    return BranchResponse.builder()
-        .id(branch.getId())
-        .code(branch.getCode())
-        .location(branch.getLocation())
-        .build();
   }
 }

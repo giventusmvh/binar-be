@@ -15,6 +15,7 @@ import com.gvn.binarbe.entity.UserProfile;
 import com.gvn.binarbe.enums.RoleName;
 import com.gvn.binarbe.enums.UserType;
 import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.mapper.AuthMapper;
 import com.gvn.binarbe.repository.RoleRepository;
 import com.gvn.binarbe.repository.UserProfileRepository;
 import com.gvn.binarbe.repository.UserRepository;
@@ -22,6 +23,7 @@ import com.gvn.binarbe.security.JwtUtil;
 import com.gvn.binarbe.service.EmailService;
 import com.gvn.binarbe.service.TokenBlacklistService;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +65,8 @@ class AuthServiceImplTest {
   @Mock private StringRedisTemplate redisTemplate;
 
   @Mock private TokenBlacklistService tokenBlacklistService;
+
+  @Mock private AuthMapper authMapper;
 
   @InjectMocks private AuthServiceImpl authService;
 
@@ -128,6 +132,17 @@ class AuthServiceImplTest {
       UserDetails mockUserDetails = mock(UserDetails.class);
       when(userDetailsService.loadUserByUsername(request.getEmail())).thenReturn(mockUserDetails);
       when(jwtUtil.generateToken(mockUserDetails)).thenReturn("jwt-token");
+      when(authMapper.toAuthResponse(any(User.class), eq("jwt-token")))
+          .thenReturn(
+              AuthResponse.builder()
+                  .token("jwt-token")
+                  .tokenType("Bearer")
+                  .userId(1L)
+                  .name("New User")
+                  .email("newuser@example.com")
+                  .roles(List.of("CUSTOMER"))
+                  .permissions(List.of("VIEW_PROFILE"))
+                  .build());
 
       // Act
       AuthResponse response = authService.register(request);
@@ -212,6 +227,17 @@ class AuthServiceImplTest {
       UserDetails mockUserDetails = mock(UserDetails.class);
       when(userDetailsService.loadUserByUsername(request.getEmail())).thenReturn(mockUserDetails);
       when(jwtUtil.generateToken(mockUserDetails)).thenReturn("jwt-token");
+      when(authMapper.toAuthResponse(testUser, "jwt-token"))
+          .thenReturn(
+              AuthResponse.builder()
+                  .token("jwt-token")
+                  .tokenType("Bearer")
+                  .userId(1L)
+                  .name("Test User")
+                  .email("test@example.com")
+                  .roles(List.of("CUSTOMER"))
+                  .permissions(List.of("VIEW_PROFILE"))
+                  .build());
 
       // Act
       AuthResponse response = authService.login(request);

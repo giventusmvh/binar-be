@@ -1,14 +1,13 @@
 package com.gvn.binarbe.service.impl;
 
 import com.gvn.binarbe.dto.request.ApprovalRequest;
-import com.gvn.binarbe.dto.response.BranchResponse;
 import com.gvn.binarbe.dto.response.LoanApplicationResponse;
 import com.gvn.binarbe.dto.response.MyApprovalHistoryResponse;
-import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.entity.*;
 import com.gvn.binarbe.enums.LoanStatus;
 import com.gvn.binarbe.enums.RoleName;
 import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.mapper.LoanApplicationMapper;
 import com.gvn.binarbe.repository.LoanApplicationHistoryRepository;
 import com.gvn.binarbe.repository.LoanApplicationRepository;
 import com.gvn.binarbe.repository.UserPlafondRepository;
@@ -32,6 +31,7 @@ public class ApprovalServiceImpl implements ApprovalService {
   private final LoanApplicationRepository loanApplicationRepository;
   private final LoanApplicationHistoryRepository historyRepository;
   private final UserPlafondRepository userPlafondRepository;
+  private final LoanApplicationMapper loanApplicationMapper;
 
   @Override
   @Transactional(readOnly = true)
@@ -43,10 +43,8 @@ public class ApprovalServiceImpl implements ApprovalService {
     List<LoanApplication> pendingLoans;
 
     if (role == RoleName.BACKOFFICE) {
-      // Backoffice can see all branches
       pendingLoans = loanApplicationRepository.findByStatusWithDetails(expectedStatus);
     } else {
-      // Marketing and Branch Manager are branch-restricted
       if (approver.getBranch() == null) {
         throw BusinessException.badRequest("You are not assigned to any branch");
       }
@@ -55,7 +53,9 @@ public class ApprovalServiceImpl implements ApprovalService {
               expectedStatus, approver.getBranch().getId());
     }
 
-    return pendingLoans.stream().map(this::mapToLoanResponse).collect(Collectors.toList());
+    return pendingLoans.stream()
+        .map(loanApplicationMapper::toResponse)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -67,7 +67,6 @@ public class ApprovalServiceImpl implements ApprovalService {
     RoleName role = getHighestRole(approver);
     LoanApplication loan = getLoanForApproval(loanId, approver, role);
 
-    // Determine new status based on role
     LoanStatus newStatus =
         switch (role) {
           case MARKETING -> LoanStatus.MARKETING_APPROVED;
@@ -76,11 +75,9 @@ public class ApprovalServiceImpl implements ApprovalService {
           default -> throw BusinessException.forbidden("You don't have approval permission");
         };
 
-    // Update loan status
     loan.setStatus(newStatus);
     loan = loanApplicationRepository.save(loan);
 
-    // Deduct remaining amount from plafond when loan is finally approved
     if (newStatus == LoanStatus.DISBURSED) {
       UserPlafond userPlafond =
           userPlafondRepository
@@ -91,7 +88,6 @@ public class ApprovalServiceImpl implements ApprovalService {
           userPlafond.getRemainingAmount().subtract(loan.getRequestedAmount());
       userPlafond.setRemainingAmount(newRemaining);
 
-      // Set plafond inactive if remaining amount is depleted
       if (newRemaining.compareTo(java.math.BigDecimal.ZERO) <= 0) {
         userPlafond.setIsActive(false);
         log.info(
@@ -101,12 +97,11 @@ public class ApprovalServiceImpl implements ApprovalService {
       userPlafondRepository.save(userPlafond);
     }
 
-    // Create history entry
     createHistoryEntry(loan, approver, role, newStatus, request.getNote());
 
     log.info("Loan {} approved with status {}", loanId, newStatus);
 
-    return mapToLoanResponse(loan);
+    return loanApplicationMapper.toResponse(loan);
   }
 
   @Override
@@ -118,7 +113,6 @@ public class ApprovalServiceImpl implements ApprovalService {
     RoleName role = getHighestRole(approver);
     LoanApplication loan = getLoanForApproval(loanId, approver, role);
 
-    // Determine rejection status based on role
     LoanStatus newStatus =
         switch (role) {
           case MARKETING -> LoanStatus.MARKETING_REJECTED;
@@ -127,17 +121,15 @@ public class ApprovalServiceImpl implements ApprovalService {
           default -> throw BusinessException.forbidden("You don't have rejection permission");
         };
 
-    // Update loan status
     loan.setStatus(newStatus);
     loan = loanApplicationRepository.save(loan);
 
-    // Create history entry
     String note = request.getNote() != null ? request.getNote() : "Loan application rejected";
     createHistoryEntry(loan, approver, role, newStatus, note);
 
     log.info("Loan {} rejected with status {}", loanId, newStatus);
 
-    return mapToLoanResponse(loan);
+    return loanApplicationMapper.toResponse(loan);
   }
 
   private User getApprover(String email) {
@@ -150,7 +142,6 @@ public class ApprovalServiceImpl implements ApprovalService {
     Set<RoleName> roleNames =
         user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
 
-    // Priority: BACKOFFICE > BRANCH_MANAGER > MARKETING
     if (roleNames.contains(RoleName.BACKOFFICE)) return RoleName.BACKOFFICE;
     if (roleNames.contains(RoleName.BRANCH_MANAGER)) return RoleName.BRANCH_MANAGER;
     if (roleNames.contains(RoleName.MARKETING)) return RoleName.MARKETING;
@@ -173,7 +164,6 @@ public class ApprovalServiceImpl implements ApprovalService {
             .findByIdWithDetails(loanId)
             .orElseThrow(() -> BusinessException.notFound("Loan application not found"));
 
-    // Check expected status
     LoanStatus expectedStatus = getExpectedStatus(role);
 
     if (loan.getStatus() != expectedStatus) {
@@ -185,7 +175,6 @@ public class ApprovalServiceImpl implements ApprovalService {
               + expectedStatus);
     }
 
-    // Check branch restriction for Marketing and Branch Manager
     if (role != RoleName.BACKOFFICE) {
       if (approver.getBranch() == null) {
         throw BusinessException.badRequest("You are not assigned to any branch");
@@ -214,48 +203,6 @@ public class ApprovalServiceImpl implements ApprovalService {
     historyRepository.save(history);
   }
 
-  private LoanApplicationResponse mapToLoanResponse(LoanApplication loan) {
-    return LoanApplicationResponse.builder()
-        .id(loan.getId())
-        // Use snapshot data (preserved from submission time)
-        .customerName(loan.getCustomerNameSnapshot())
-        .customerEmail(loan.getCustomerEmailSnapshot())
-        .customerNik(loan.getCustomerNikSnapshot())
-        .customerPhone(loan.getCustomerPhoneSnapshot())
-        .customerAddress(loan.getCustomerAddressSnapshot())
-        .customerBirthdate(loan.getCustomerBirthdateSnapshot())
-        .customerKtpPath(loan.getCustomerKtpPathSnapshot())
-        .customerKkPath(loan.getCustomerKkPathSnapshot())
-        .customerNpwpPath(loan.getCustomerNpwpPathSnapshot())
-        .product(mapToProductResponse(loan.getProduct()))
-        .branch(mapToBranchResponse(loan.getBranch()))
-        .requestedAmount(loan.getRequestedAmount())
-        .requestedTenor(loan.getRequestedTenor())
-        .requestedRate(loan.getRequestedRate())
-        .status(loan.getStatus())
-        .createdAt(loan.getCreatedAt())
-        .updatedAt(loan.getUpdatedAt())
-        .build();
-  }
-
-  private ProductResponse mapToProductResponse(Product product) {
-    return ProductResponse.builder()
-        .id(product.getId())
-        .name(product.getName())
-        .amount(product.getAmount())
-        .tenor(product.getTenor())
-        .interestRate(product.getInterestRate())
-        .build();
-  }
-
-  private BranchResponse mapToBranchResponse(Branch branch) {
-    return BranchResponse.builder()
-        .id(branch.getId())
-        .code(branch.getCode())
-        .location(branch.getLocation())
-        .build();
-  }
-
   @Override
   @Transactional(readOnly = true)
   public List<MyApprovalHistoryResponse> getMyApprovalHistory(String email) {
@@ -265,24 +212,8 @@ public class ApprovalServiceImpl implements ApprovalService {
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
     return historyRepository.findByApprovedByIdWithLoanDetails(user.getId()).stream()
-        .filter(h -> !h.getApprovedByRole().equals("CUSTOMER")) // Exclude customer submissions
-        .map(this::mapToMyHistoryResponse)
+        .filter(h -> !h.getApprovedByRole().equals("CUSTOMER"))
+        .map(loanApplicationMapper::toMyApprovalHistoryResponse)
         .collect(Collectors.toList());
-  }
-
-  private MyApprovalHistoryResponse mapToMyHistoryResponse(LoanApplicationHistory h) {
-    LoanApplication loan = h.getLoanApplication();
-    return MyApprovalHistoryResponse.builder()
-        .id(h.getId())
-        .loanId(loan.getId())
-        .customerName(loan.getCustomerNameSnapshot())
-        .productName(loan.getProduct().getName())
-        .loanAmount(loan.getRequestedAmount())
-        .branchLocation(loan.getBranch().getLocation())
-        .actionTaken(h.getStatus())
-        .currentStatus(loan.getStatus())
-        .note(h.getNote())
-        .actionDate(h.getCreatedAt())
-        .build();
   }
 }

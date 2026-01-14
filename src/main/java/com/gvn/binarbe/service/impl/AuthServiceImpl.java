@@ -11,6 +11,7 @@ import com.gvn.binarbe.entity.UserProfile;
 import com.gvn.binarbe.enums.RoleName;
 import com.gvn.binarbe.enums.UserType;
 import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.mapper.AuthMapper;
 import com.gvn.binarbe.repository.RoleRepository;
 import com.gvn.binarbe.repository.UserProfileRepository;
 import com.gvn.binarbe.repository.UserRepository;
@@ -23,7 +24,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +54,7 @@ public class AuthServiceImpl implements AuthService {
   private final EmailService emailService;
   private final StringRedisTemplate redisTemplate;
   private final TokenBlacklistService tokenBlacklistService;
+  private final AuthMapper authMapper;
 
   @Value("${app.password-reset.token-expiry-minutes}")
   private int tokenExpiryMinutes;
@@ -63,18 +64,15 @@ public class AuthServiceImpl implements AuthService {
   public AuthResponse register(RegisterRequest request) {
     log.info("Registering new customer: {}", request.getEmail());
 
-    // Check if email already exists
     if (userRepository.existsByEmail(request.getEmail())) {
       throw BusinessException.conflict("Email already registered");
     }
 
-    // Get CUSTOMER role
     Role customerRole =
         roleRepository
             .findByName(RoleName.CUSTOMER)
             .orElseThrow(() -> BusinessException.notFound("Customer role not found"));
 
-    // Create new user
     Set<Role> roles = new HashSet<>();
     roles.add(customerRole);
 
@@ -90,28 +88,24 @@ public class AuthServiceImpl implements AuthService {
 
     user = userRepository.save(user);
 
-    // Create empty profile
     UserProfile profile = UserProfile.builder().user(user).build();
     userProfileRepository.save(profile);
 
-    // Generate token
     UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
     String token = jwtUtil.generateToken(userDetails);
 
     log.info("Customer registered successfully: {}", user.getEmail());
 
-    return buildAuthResponse(user, token);
+    return authMapper.toAuthResponse(user, token);
   }
 
   @Override
   public AuthResponse login(LoginRequest request) {
     log.info("Authenticating user: {}", request.getEmail());
 
-    // Authenticate
     authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
-    // Get user
     User user =
         userRepository
             .findByEmailWithRoles(request.getEmail())
@@ -121,38 +115,32 @@ public class AuthServiceImpl implements AuthService {
       throw BusinessException.unauthorized("Account is disabled");
     }
 
-    // Generate token
     UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
     String token = jwtUtil.generateToken(userDetails);
 
     log.info("User authenticated successfully: {}", user.getEmail());
 
-    return buildAuthResponse(user, token);
+    return authMapper.toAuthResponse(user, token);
   }
 
   @Override
   public void forgotPassword(ForgotPasswordRequest request) {
     log.info("Processing forgot password request for: {}", request.getEmail());
 
-    // Find user by email (don't reveal if email exists for security)
     User user = userRepository.findByEmail(request.getEmail()).orElse(null);
 
     if (user == null) {
-      // Log but don't reveal to client that email doesn't exist
       log.warn("Forgot password requested for non-existent email: {}", request.getEmail());
       return;
     }
 
-    // Generate reset token
     String resetToken = UUID.randomUUID().toString();
     String redisKey = PASSWORD_RESET_KEY_PREFIX + resetToken;
 
-    // Store token in Redis with TTL
     redisTemplate
         .opsForValue()
         .set(redisKey, user.getId().toString(), tokenExpiryMinutes, TimeUnit.MINUTES);
 
-    // Send email with reset link
     emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
 
     log.info("Password reset email sent to: {}", user.getEmail());
@@ -163,12 +151,10 @@ public class AuthServiceImpl implements AuthService {
   public void resetPassword(ResetPasswordRequest request) {
     log.info("Processing password reset with token");
 
-    // Validate passwords match
     if (!request.getNewPassword().equals(request.getConfirmPassword())) {
       throw BusinessException.badRequest("New password and confirm password do not match");
     }
 
-    // Get user ID from Redis
     String redisKey = PASSWORD_RESET_KEY_PREFIX + request.getToken();
     String userIdStr = redisTemplate.opsForValue().get(redisKey);
 
@@ -176,21 +162,17 @@ public class AuthServiceImpl implements AuthService {
       throw BusinessException.badRequest("Invalid or expired reset token");
     }
 
-    // Find user
     Long userId = Long.parseLong(userIdStr);
     User user =
         userRepository
             .findById(userId)
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
-    // Update password
     user.setPassword(passwordEncoder.encode(request.getNewPassword()));
     userRepository.save(user);
 
-    // Delete reset token from Redis (one-time use)
     redisTemplate.delete(redisKey);
 
-    // Invalidate all existing tokens
     tokenBlacklistService.invalidateAllUserTokens(user.getEmail());
 
     log.info(
@@ -202,35 +184,12 @@ public class AuthServiceImpl implements AuthService {
     log.info("Processing logout request");
 
     try {
-      // Extract expiration from token to calculate TTL
       Date expiration = jwtUtil.extractExpiration(token);
       long ttlMillis = expiration.getTime() - System.currentTimeMillis();
 
-      // Blacklist the token
       tokenBlacklistService.blacklistToken(token, ttlMillis);
     } catch (Exception e) {
       log.error("Error during logout: {}", e.getMessage());
-      // Still return success - token might already be invalid
     }
-  }
-
-  private AuthResponse buildAuthResponse(User user, String token) {
-    return AuthResponse.builder()
-        .token(token)
-        .tokenType("Bearer")
-        .userId(user.getId())
-        .email(user.getEmail())
-        .name(user.getName())
-        .roles(
-            user.getRoles().stream()
-                .map(role -> role.getName().name())
-                .collect(Collectors.toList()))
-        .permissions(
-            user.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .map(permission -> permission.getCode())
-                .distinct()
-                .collect(Collectors.toList()))
-        .build();
   }
 }

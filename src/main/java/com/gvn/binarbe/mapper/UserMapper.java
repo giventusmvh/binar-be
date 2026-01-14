@@ -3,10 +3,14 @@ package com.gvn.binarbe.mapper;
 import com.gvn.binarbe.dto.response.*;
 import com.gvn.binarbe.entity.*;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
+
+  private final BranchMapper branchMapper;
 
   public UserResponse toUserResponse(User user) {
     return UserResponse.builder()
@@ -15,7 +19,7 @@ public class UserMapper {
         .email(user.getEmail())
         .userType(user.getUserType())
         .isActive(user.getIsActive())
-        .branch(user.getBranch() != null ? toBranchResponse(user.getBranch()) : null)
+        .branch(branchMapper.toResponse(user.getBranch()))
         .profile(user.getProfile() != null ? toProfileResponse(user.getProfile()) : null)
         .roles(
             user.getRoles().stream()
@@ -26,6 +30,7 @@ public class UserMapper {
   }
 
   public UserProfileResponse toProfileResponse(UserProfile profile) {
+    if (profile == null) return null;
     return UserProfileResponse.builder()
         .id(profile.getId())
         .birthdate(profile.getBirthdate())
@@ -36,14 +41,6 @@ public class UserMapper {
         .ktpUrl(profile.getKtpPath() != null ? "/uploads/" + profile.getKtpPath() : null)
         .kkUrl(profile.getKkPath() != null ? "/uploads/" + profile.getKkPath() : null)
         .npwpUrl(profile.getNpwpPath() != null ? "/uploads/" + profile.getNpwpPath() : null)
-        .build();
-  }
-
-  public BranchResponse toBranchResponse(Branch branch) {
-    return BranchResponse.builder()
-        .id(branch.getId())
-        .code(branch.getCode())
-        .location(branch.getLocation())
         .build();
   }
 

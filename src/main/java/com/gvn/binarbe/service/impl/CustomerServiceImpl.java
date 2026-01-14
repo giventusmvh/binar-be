@@ -5,11 +5,12 @@ import com.gvn.binarbe.dto.response.BranchResponse;
 import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.dto.response.UserProfileResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
-import com.gvn.binarbe.entity.Branch;
-import com.gvn.binarbe.entity.Product;
 import com.gvn.binarbe.entity.User;
 import com.gvn.binarbe.entity.UserProfile;
 import com.gvn.binarbe.exception.BusinessException;
+import com.gvn.binarbe.mapper.BranchMapper;
+import com.gvn.binarbe.mapper.ProductMapper;
+import com.gvn.binarbe.mapper.UserMapper;
 import com.gvn.binarbe.repository.BranchRepository;
 import com.gvn.binarbe.repository.ProductRepository;
 import com.gvn.binarbe.repository.UserProfileRepository;
@@ -35,6 +36,9 @@ public class CustomerServiceImpl implements CustomerService {
   private final ProductRepository productRepository;
   private final BranchRepository branchRepository;
   private final FileStorageService fileStorageService;
+  private final UserMapper userMapper;
+  private final BranchMapper branchMapper;
+  private final ProductMapper productMapper;
 
   @Override
   @Transactional(readOnly = true)
@@ -48,7 +52,7 @@ public class CustomerServiceImpl implements CustomerService {
                     .getId())
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
-    return mapToUserResponse(user);
+    return userMapper.toUserResponse(user);
   }
 
   @Override
@@ -95,7 +99,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     log.info("Profile updated for user: {}", email);
 
-    return mapToProfileResponse(profile);
+    return userMapper.toProfileResponse(profile);
   }
 
   @Override
@@ -116,7 +120,7 @@ public class CustomerServiceImpl implements CustomerService {
   @Transactional(readOnly = true)
   public List<ProductResponse> getAllProducts() {
     return productRepository.findAll().stream()
-        .map(this::mapToProductResponse)
+        .map(productMapper::toResponse)
         .collect(Collectors.toList());
   }
 
@@ -124,56 +128,7 @@ public class CustomerServiceImpl implements CustomerService {
   @Transactional(readOnly = true)
   public List<BranchResponse> getAllBranches() {
     return branchRepository.findAll().stream()
-        .map(this::mapToBranchResponse)
+        .map(branchMapper::toResponse)
         .collect(Collectors.toList());
-  }
-
-  private UserResponse mapToUserResponse(User user) {
-    return UserResponse.builder()
-        .id(user.getId())
-        .name(user.getName())
-        .email(user.getEmail())
-        .userType(user.getUserType())
-        .isActive(user.getIsActive())
-        .branch(user.getBranch() != null ? mapToBranchResponse(user.getBranch()) : null)
-        .profile(user.getProfile() != null ? mapToProfileResponse(user.getProfile()) : null)
-        .roles(
-            user.getRoles().stream()
-                .map(role -> role.getName().name())
-                .collect(Collectors.toList()))
-        .createdAt(user.getCreatedAt())
-        .build();
-  }
-
-  private UserProfileResponse mapToProfileResponse(UserProfile profile) {
-    return UserProfileResponse.builder()
-        .id(profile.getId())
-        .birthdate(profile.getBirthdate())
-        .phone(profile.getPhone())
-        .address(profile.getAddress())
-        .nik(profile.getNik())
-        .isComplete(profile.isComplete())
-        .ktpUrl(profile.getKtpPath() != null ? "/uploads/" + profile.getKtpPath() : null)
-        .kkUrl(profile.getKkPath() != null ? "/uploads/" + profile.getKkPath() : null)
-        .npwpUrl(profile.getNpwpPath() != null ? "/uploads/" + profile.getNpwpPath() : null)
-        .build();
-  }
-
-  private ProductResponse mapToProductResponse(Product product) {
-    return ProductResponse.builder()
-        .id(product.getId())
-        .name(product.getName())
-        .amount(product.getAmount())
-        .tenor(product.getTenor())
-        .interestRate(product.getInterestRate())
-        .build();
-  }
-
-  private BranchResponse mapToBranchResponse(Branch branch) {
-    return BranchResponse.builder()
-        .id(branch.getId())
-        .code(branch.getCode())
-        .location(branch.getLocation())
-        .build();
   }
 }
