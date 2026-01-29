@@ -3,7 +3,6 @@ package com.gvn.binarbe.controller;
 import com.gvn.binarbe.dto.request.SelectPlafondRequest;
 import com.gvn.binarbe.dto.request.UpdateProfileRequest;
 import com.gvn.binarbe.dto.response.BranchResponse;
-import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.dto.response.UserPlafondResponse;
 import com.gvn.binarbe.dto.response.UserProfileResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
@@ -80,13 +79,6 @@ public class CustomerController {
   public ResponseEntity<ApiResponse<UserPlafondResponse>> getMyPlafond(
       @AuthenticationPrincipal UserDetails userDetails) {
     UserPlafondResponse response = plafondService.getMyPlafond(userDetails.getUsername());
-    return ResponseUtil.ok(response);
-  }
-
-  /** Get all available products. GET /api/products Public endpoint - no authentication required. */
-  @GetMapping("/api/products")
-  public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts() {
-    List<ProductResponse> response = customerService.getAllProducts();
     return ResponseUtil.ok(response);
   }
 

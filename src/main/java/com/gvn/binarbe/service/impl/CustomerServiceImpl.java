@@ -2,17 +2,14 @@ package com.gvn.binarbe.service.impl;
 
 import com.gvn.binarbe.dto.request.UpdateProfileRequest;
 import com.gvn.binarbe.dto.response.BranchResponse;
-import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.dto.response.UserProfileResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
 import com.gvn.binarbe.entity.User;
 import com.gvn.binarbe.entity.UserProfile;
 import com.gvn.binarbe.exception.BusinessException;
 import com.gvn.binarbe.mapper.BranchMapper;
-import com.gvn.binarbe.mapper.ProductMapper;
 import com.gvn.binarbe.mapper.UserMapper;
 import com.gvn.binarbe.repository.BranchRepository;
-import com.gvn.binarbe.repository.ProductRepository;
 import com.gvn.binarbe.repository.UserProfileRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.service.CustomerService;
@@ -33,12 +30,11 @@ public class CustomerServiceImpl implements CustomerService {
 
   private final UserRepository userRepository;
   private final UserProfileRepository userProfileRepository;
-  private final ProductRepository productRepository;
+
   private final BranchRepository branchRepository;
   private final FileStorageService fileStorageService;
   private final UserMapper userMapper;
   private final BranchMapper branchMapper;
-  private final ProductMapper productMapper;
 
   @Override
   @Transactional(readOnly = true)
@@ -117,14 +113,6 @@ public class CustomerServiceImpl implements CustomerService {
         .findByUserId(user.getId())
         .map(UserProfile::isComplete)
         .orElse(false);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProductResponse> getAllProducts() {
-    return productRepository.findAll().stream()
-        .map(productMapper::toResponse)
-        .collect(Collectors.toList());
   }
 
   @Override

@@ -2,7 +2,6 @@ package com.gvn.binarbe.service;
 
 import com.gvn.binarbe.dto.request.UpdateProfileRequest;
 import com.gvn.binarbe.dto.response.BranchResponse;
-import com.gvn.binarbe.dto.response.ProductResponse;
 import com.gvn.binarbe.dto.response.UserProfileResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
 import java.util.List;
@@ -40,13 +39,6 @@ public interface CustomerService {
    * @return true if profile is complete
    */
   boolean isProfileComplete(String email);
-
-  /**
-   * Get all available products.
-   *
-   * @return list of products
-   */
-  List<ProductResponse> getAllProducts();
 
   /**
    * Get all branches.
