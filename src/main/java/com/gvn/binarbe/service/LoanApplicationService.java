@@ -42,4 +42,11 @@ public interface LoanApplicationService {
    * @return list of history entries
    */
   List<LoanHistoryResponse> getLoanHistory(String email, Long loanId);
+
+  /**
+   * Get all loans in the system (Superadmin only).
+   *
+   * @return list of all loan applications
+   */
+  List<LoanApplicationResponse> getAllLoans();
 }

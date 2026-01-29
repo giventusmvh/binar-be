@@ -60,6 +60,56 @@ Binar Loan Application adalah sistem pengajuan pinjaman dengan fitur:
 
 ---
 
+## 1.1. Platform-Based Access
+
+> Sistem ini diakses melalui 2 platform berbeda dengan fitur yang terpisah.
+
+### 📱 Mobile App (Android/iOS) - Customer Only
+
+| Fitur               | API Endpoints                                                     |
+| ------------------- | ----------------------------------------------------------------- |
+| **Register**        | `POST /api/auth/register`                                         |
+| **Login**           | `POST /api/auth/login`                                            |
+| **Forgot Password** | `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` |
+| **Logout**          | `POST /api/auth/logout`                                           |
+| **Profile**         | `GET /api/customer/profile`, `PUT /api/customer/profile`          |
+| **Products**        | `GET /api/products` (public)                                      |
+| **Branches**        | `GET /api/branches` (public)                                      |
+| **Plafond**         | `GET /api/customer/plafond`, `POST /api/customer/plafond`         |
+| **Loans**           | `POST /api/loans`, `GET /api/loans`, `GET /api/loans/{id}`        |
+| **Loan History**    | `GET /api/loans/{id}/history`                                     |
+
+### 💻 Website Dashboard - Internal Staff Only
+
+| Role           | API Endpoints                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| **Login**      | `POST /api/auth/login`                                                                                |
+| **MARKETING**  | `GET /api/approval/pending`, `POST /api/approval/{id}/approve/reject`, `GET /api/approval/my-history` |
+| **BRANCH_MGR** | `GET /api/approval/pending`, `POST /api/approval/{id}/approve/reject`, `GET /api/approval/my-history` |
+| **BACKOFFICE** | `GET /api/approval/pending`, `POST /api/approval/{id}/approve/reject`, `GET /api/approval/my-history` |
+| **SUPERADMIN** | `/api/admin/*` (User, Role, Permission, Branch management)                                            |
+
+### Platform Comparison
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        PLATFORM COMPARISON                                    │
+├──────────────────────┬──────────────────────┬────────────────────────────────┤
+│       Feature        │    📱 Mobile App     │    💻 Website Dashboard        │
+├──────────────────────┼──────────────────────┼────────────────────────────────┤
+│ Target User          │ Customer (External)  │ Internal Staff                 │
+│ Registration         │ ✅ Self-register     │ ❌ Created by SuperAdmin       │
+│ Profile Management   │ ✅ Self-manage       │ ❌ Not applicable              │
+│ Plafond Selection    │ ✅ Self-select       │ ❌ Not applicable              │
+│ Loan Submission      │ ✅ Submit + Track    │ ❌ View only                   │
+│ Loan Approval        │ ❌ Not allowed       │ ✅ Multi-level approval        │
+│ User Management      │ ❌ Not allowed       │ ✅ SuperAdmin only             │
+│ Branch Restriction   │ ❌ Not applicable    │ ✅ Marketing & BM restricted   │
+└──────────────────────┴──────────────────────┴────────────────────────────────┘
+```
+
+---
+
 ## 2. User Types & Roles
 
 ### User Types
@@ -104,7 +154,7 @@ Binar Loan Application adalah sistem pengajuan pinjaman dengan fitur:
 
 ---
 
-## 3. Customer Journey
+## 3. Customer Journey [📱 MOBILE APP]
 
 ### Complete Flow
 
@@ -188,7 +238,7 @@ public boolean isComplete() {
 
 ---
 
-## 4. Loan Approval Workflow
+## 4. Loan Approval Workflow [💻 WEBSITE DASHBOARD]
 
 ### Multi-Level Approval Process
 
@@ -598,4 +648,4 @@ Marketing          BranchMgr          Backoffice         Database
 
 ---
 
-_Documentation updated: 2026-01-07_
+_Documentation updated: 2026-01-22 (Platform differentiation added)_

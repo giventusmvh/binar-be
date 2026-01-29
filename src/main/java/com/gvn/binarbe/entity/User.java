@@ -52,6 +52,9 @@ public class User {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
+  @Column(name = "fcm_token")
+  private String fcmToken;
+
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private UserProfile profile;
 

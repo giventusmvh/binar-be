@@ -180,10 +180,23 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
+  @Transactional
   public void logout(String token) {
     log.info("Processing logout request");
 
     try {
+      // Extract email and clear FCM token
+      String email = jwtUtil.extractEmail(token);
+      userRepository
+          .findByEmail(email)
+          .ifPresent(
+              user -> {
+                user.setFcmToken(null);
+                userRepository.save(user);
+                log.info("FCM token cleared for user: {}", email);
+              });
+
+      // Blacklist JWT token
       Date expiration = jwtUtil.extractExpiration(token);
       long ttlMillis = expiration.getTime() - System.currentTimeMillis();
 

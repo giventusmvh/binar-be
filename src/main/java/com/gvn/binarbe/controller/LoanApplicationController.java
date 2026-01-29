@@ -66,4 +66,12 @@ public class LoanApplicationController {
         loanApplicationService.getLoanHistory(userDetails.getUsername(), id);
     return ResponseUtil.ok(response);
   }
+
+  /** Get all loans in the system. GET /api/loans/all Requires LOAN_READ_ALL permission. */
+  @GetMapping("/all")
+  @PreAuthorize("hasAuthority('LOAN_READ_ALL')")
+  public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getAllLoans() {
+    List<LoanApplicationResponse> response = loanApplicationService.getAllLoans();
+    return ResponseUtil.ok(response);
+  }
 }

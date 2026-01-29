@@ -11,6 +11,7 @@ import com.gvn.binarbe.exception.BusinessException;
 import com.gvn.binarbe.mapper.LoanApplicationMapper;
 import com.gvn.binarbe.repository.*;
 import com.gvn.binarbe.service.LoanApplicationService;
+import com.gvn.binarbe.service.PushNotificationService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
   private final LoanApplicationHistoryRepository historyRepository;
   private final UserPlafondRepository userPlafondRepository;
   private final LoanApplicationMapper loanApplicationMapper;
+  private final PushNotificationService pushNotificationService;
 
   @Override
   @Transactional
@@ -140,6 +142,10 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     historyRepository.save(history);
 
+    // Send push notification to customer
+    pushNotificationService.sendLoanStatusNotification(
+        customer, loanApplication.getId(), LoanStatus.SUBMITTED, null);
+
     log.info("Loan application submitted: ID={}", loanApplication.getId());
 
     return loanApplicationMapper.toResponse(loanApplication);
@@ -193,6 +199,14 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     return historyRepository.findByLoanApplicationIdWithApprover(loanId).stream()
         .map(loanApplicationMapper::toHistoryResponse)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<LoanApplicationResponse> getAllLoans() {
+    return loanApplicationRepository.findAllWithDetails().stream()
+        .map(loanApplicationMapper::toResponse)
         .collect(Collectors.toList());
   }
 

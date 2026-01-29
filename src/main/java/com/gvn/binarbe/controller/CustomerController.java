@@ -96,4 +96,14 @@ public class CustomerController {
     List<BranchResponse> response = customerService.getAllBranches();
     return ResponseUtil.ok(response);
   }
+
+  /** Register FCM token for push notifications. POST /api/customer/fcm-token */
+  @PostMapping("/api/customer/fcm-token")
+  @PreAuthorize("hasAuthority('PROFILE_UPDATE')")
+  public ResponseEntity<ApiResponse<Void>> registerFcmToken(
+      @AuthenticationPrincipal UserDetails userDetails,
+      @Valid @RequestBody com.gvn.binarbe.dto.request.RegisterFcmTokenRequest request) {
+    customerService.registerFcmToken(userDetails.getUsername(), request.getFcmToken());
+    return ResponseUtil.ok("FCM token registered successfully", null);
+  }
 }

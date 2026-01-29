@@ -13,6 +13,7 @@ import com.gvn.binarbe.repository.LoanApplicationRepository;
 import com.gvn.binarbe.repository.UserPlafondRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.service.ApprovalService;
+import com.gvn.binarbe.service.PushNotificationService;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,6 +33,7 @@ public class ApprovalServiceImpl implements ApprovalService {
   private final LoanApplicationHistoryRepository historyRepository;
   private final UserPlafondRepository userPlafondRepository;
   private final LoanApplicationMapper loanApplicationMapper;
+  private final PushNotificationService pushNotificationService;
 
   @Override
   @Transactional(readOnly = true)
@@ -99,6 +101,10 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     createHistoryEntry(loan, approver, role, newStatus, request.getNote());
 
+    // Send push notification to customer
+    pushNotificationService.sendLoanStatusNotification(
+        loan.getCustomer(), loan.getId(), newStatus, request.getNote());
+
     log.info("Loan {} approved with status {}", loanId, newStatus);
 
     return loanApplicationMapper.toResponse(loan);
@@ -126,6 +132,10 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     String note = request.getNote() != null ? request.getNote() : "Loan application rejected";
     createHistoryEntry(loan, approver, role, newStatus, note);
+
+    // Send push notification to customer
+    pushNotificationService.sendLoanStatusNotification(
+        loan.getCustomer(), loan.getId(), newStatus, note);
 
     log.info("Loan {} rejected with status {}", loanId, newStatus);
 

@@ -6,15 +6,49 @@
 
 ## Table of Contents
 
+### 📱 Mobile App (Customer)
+
 1. [Setup](#1-setup)
-2. [Authentication Flow](#2-authentication-flow)
-3. [Customer Flow](#3-customer-flow)
-4. [Plafond Selection Flow](#4-plafond-selection-flow)
-5. [Loan Application Flow](#5-loan-application-flow)
-6. [Approval Workflow](#6-approval-workflow)
-7. [SuperAdmin Flow](#7-superadmin-flow)
+2. [Authentication Flow](#2-authentication-flow) - Register, Login, Password Reset
+3. [Customer Flow](#3-customer-flow) - Profile Management
+4. [Plafond Selection Flow](#4-plafond-selection-flow) - Credit Limit Selection
+5. [Loan Application Flow](#5-loan-application-flow) - Submit & Track Loans
+
+### 💻 Website Dashboard (Internal Staff)
+
+6. [Approval Workflow](#6-approval-workflow) - Marketing, BM, Backoffice
+7. [SuperAdmin Flow](#7-superadmin-flow) - User & Role Management
 8. [Shared Staff Operations](#8-shared-staff-operations)
 9. [File Access](#9-file-access)
+
+---
+
+## Platform Overview
+
+> Dokumentasi ini dibagi menjadi 2 bagian berdasarkan platform akses.
+
+### 📱 Mobile App - Customer Only
+
+| Feature            | Endpoints                                           |
+| ------------------ | --------------------------------------------------- |
+| **Registration**   | `POST /api/auth/register`                           |
+| **Login/Logout**   | `POST /api/auth/login`, `/logout`                   |
+| **Password Reset** | `POST /api/auth/forgot-password`, `/reset-password` |
+| **FCM Token**      | `POST /api/customer/fcm-token`                      |
+| **Profile**        | `GET/PUT /api/customer/profile`                     |
+| **Plafond**        | `GET/POST /api/customer/plafond`                    |
+| **Loans**          | `GET/POST /api/loans`, `/loans/{id}`                |
+| **Public Data**    | `GET /api/products`, `/api/branches`                |
+
+### 💻 Website Dashboard - Internal Staff
+
+| Role           | Endpoints                                            |
+| -------------- | ---------------------------------------------------- |
+| **All Staff**  | `POST /api/auth/login`, `GET /api/approval/*`        |
+| **Marketing**  | `POST /api/approval/{id}/approve/reject`             |
+| **BM**         | `POST /api/approval/{id}/approve/reject`             |
+| **Backoffice** | `POST /api/approval/{id}/approve/reject`             |
+| **SuperAdmin** | `/api/admin/*` (Users, Roles, Permissions, Branches) |
 
 ---
 
@@ -30,30 +64,45 @@ http://localhost:8080
 
 Create a Postman environment with these variables:
 
+**📱 Mobile App Variables:**
+
+| Variable         | Initial Value           | Description               |
+| ---------------- | ----------------------- | ------------------------- |
+| `base_url`       | `http://localhost:8080` | API base URL              |
+| `customer_token` | (empty)                 | Auto-set after login      |
+| `loan_id`        | (empty)                 | Auto-set after submission |
+
+**💻 Website Dashboard Variables:**
+
 | Variable           | Initial Value           | Description                         |
 | ------------------ | ----------------------- | ----------------------------------- |
 | `base_url`         | `http://localhost:8080` | API base URL                        |
-| `customer_token`   | (empty)                 | Auto-set after customer login       |
 | `marketing_token`  | (empty)                 | Auto-set after marketing login      |
 | `bm_token`         | (empty)                 | Auto-set after branch manager login |
 | `backoffice_token` | (empty)                 | Auto-set after backoffice login     |
 | `admin_token`      | (empty)                 | Auto-set after superadmin login     |
-| `loan_id`          | (empty)                 | Auto-set after loan submission      |
 
 ### Pre-seeded Test Accounts
 
-| Email                    | Password        | Role                  | Branch  |
-| ------------------------ | --------------- | --------------------- | ------- |
-| `john.doe@email.com`     | `customer123`   | CUSTOMER              | -       |
-| `jane.smith@email.com`   | `customer123`   | CUSTOMER (no profile) | -       |
-| `marketing.jkt@loan.com` | `marketing123`  | MARKETING             | Jakarta |
-| `bm.jkt@loan.com`        | `bm123`         | BRANCH_MANAGER        | Jakarta |
-| `backoffice@loan.com`    | `backoffice123` | BACKOFFICE            | -       |
-| `admin@loan.com`         | `admin123`      | SUPERADMIN            | -       |
+**📱 Mobile App (Customer):**
+
+| Email                  | Password      | Role                  |
+| ---------------------- | ------------- | --------------------- |
+| `john.doe@email.com`   | `customer123` | CUSTOMER              |
+| `jane.smith@email.com` | `customer123` | CUSTOMER (no profile) |
+
+**💻 Website Dashboard (Internal Staff):**
+
+| Email                    | Password        | Role           | Branch  |
+| ------------------------ | --------------- | -------------- | ------- |
+| `marketing.jkt@loan.com` | `marketing123`  | MARKETING      | Jakarta |
+| `bm.jkt@loan.com`        | `bm123`         | BRANCH_MANAGER | Jakarta |
+| `backoffice@loan.com`    | `backoffice123` | BACKOFFICE     | -       |
+| `admin@loan.com`         | `admin123`      | SUPERADMIN     | -       |
 
 ---
 
-## 2. Authentication Flow
+## 2. Authentication Flow [📱 MOBILE / 💻 WEBSITE]
 
 ### 2.1 Register New Customer
 
@@ -271,7 +320,46 @@ if (pm.response.code === 201) {
 
 ---
 
-## 3. Customer Flow
+## 3. Customer Flow [📱 MOBILE]
+
+### 3.0 Register FCM Token (Push Notifications)
+
+**Endpoint:** `POST /api/customer/fcm-token`  
+**Auth:** Bearer Token (CUSTOMER)
+
+> **Important:** Call this endpoint after login to enable push notifications for loan status updates.
+
+```json
+// Request Body
+{
+  "fcmToken": "firebase-device-token-from-mobile-sdk"
+}
+```
+
+```json
+// Success Response (200 OK)
+{
+  "success": true,
+  "message": "FCM token registered successfully",
+  "data": null,
+  "timestamp": "2026-01-22T10:00:00"
+}
+```
+
+**When to call:**
+
+- After successful login
+- After app reinstall or data clear (FCM token regenerates)
+
+**Push Notifications sent for:**
+| Status | Notification |
+|--------|--------------|
+| MARKETING_APPROVED | "Pengajuan sedang dalam review Branch Manager" |
+| BRANCH_MANAGER_APPROVED | "Pengajuan menunggu persetujuan akhir" |
+| DISBURSED | "Selamat! Pengajuan Anda telah disetujui ✅" |
+| \*\_REJECTED | "Pengajuan ditolak. Alasan: {note} ❌" |
+
+---
 
 ### 3.1 Get Profile
 
@@ -421,7 +509,7 @@ if (pm.response.code === 201) {
 
 ---
 
-## 4. Plafond Selection Flow
+## 4. Plafond Selection Flow [📱 MOBILE]
 
 > **Important:** Customer must select a plafond (credit limit) before submitting loans.
 > Products define the maximum limits for amount, tenor, and minimum interest rate.
@@ -541,7 +629,7 @@ if (pm.response.code === 201) {
 
 ---
 
-## 5. Loan Application Flow
+## 5. Loan Application Flow [📱 MOBILE]
 
 ### 5.1 Submit Loan Application
 
@@ -748,7 +836,7 @@ if (pm.response.code === 201) {
 
 ---
 
-## 5. Approval Workflow
+## 5. Approval Workflow [💻 WEBSITE]
 
 ### Complete Approval Flow Diagram
 
@@ -939,7 +1027,7 @@ if (pm.response.code === 201) {
 
 ---
 
-## 6. SuperAdmin Flow
+## 6. SuperAdmin Flow [💻 WEBSITE]
 
 ### 6.1 Create Internal User
 
@@ -1496,7 +1584,7 @@ if (pm.response.code === 201) {
 
 ---
 
-## 8. Shared Staff Operations
+## 8. Shared Staff Operations [💻 WEBSITE]
 
 ### 8.1 Get User Detail
 

@@ -134,4 +134,18 @@ public class CustomerServiceImpl implements CustomerService {
         .map(branchMapper::toResponse)
         .collect(Collectors.toList());
   }
+
+  @Override
+  @Transactional
+  public void registerFcmToken(String email, String fcmToken) {
+    log.info("Registering FCM token for user: {}", email);
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> BusinessException.notFound("User not found"));
+
+    user.setFcmToken(fcmToken);
+    userRepository.save(user);
+    log.info("FCM token registered for user: {}", email);
+  }
 }

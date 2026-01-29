@@ -54,4 +54,12 @@ public interface CustomerService {
    * @return list of branches
    */
   List<BranchResponse> getAllBranches();
+
+  /**
+   * Register FCM token for push notifications.
+   *
+   * @param email user email
+   * @param fcmToken the FCM token from mobile device
+   */
+  void registerFcmToken(String email, String fcmToken);
 }
