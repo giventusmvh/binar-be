@@ -111,7 +111,7 @@
             <artifactId>spring-dotenv</artifactId>
             <version>4.0.0</version>
         </dependency>
-        <!-- Firebase Admin SDK for Push Notifications -->
+        <!-- Firebase Admin SDK for Push Notifications and Authentication -->
         <dependency>
             <groupId>com.google.firebase</groupId>
             <artifactId>firebase-admin</artifactId>

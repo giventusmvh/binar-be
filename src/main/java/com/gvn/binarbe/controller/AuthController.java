@@ -1,11 +1,13 @@
 package com.gvn.binarbe.controller;
 
 import com.gvn.binarbe.dto.request.ForgotPasswordRequest;
+import com.gvn.binarbe.dto.request.GoogleLoginRequest;
 import com.gvn.binarbe.dto.request.LoginRequest;
 import com.gvn.binarbe.dto.request.RegisterRequest;
 import com.gvn.binarbe.dto.request.ResetPasswordRequest;
 import com.gvn.binarbe.dto.response.AuthResponse;
 import com.gvn.binarbe.service.AuthService;
+import com.gvn.binarbe.service.GoogleAuthService;
 import com.gvn.binarbe.util.ApiResponse;
 import com.gvn.binarbe.util.ResponseUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
   private final AuthService authService;
+  private final GoogleAuthService googleAuthService;
 
   /** Register a new customer. POST /api/auth/register */
   @PostMapping("/register")
@@ -65,5 +68,13 @@ public class AuthController {
       authService.logout(token);
     }
     return ResponseUtil.ok("Logged out successfully");
+  }
+
+  /** Authenticate user using Google ID token from Android. POST /api/auth/google-login */
+  @PostMapping("/google-login")
+  public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(
+      @Valid @RequestBody GoogleLoginRequest request) {
+    AuthResponse response = googleAuthService.loginWithGoogle(request);
+    return ResponseUtil.ok("Google login successful", response);
   }
 }
