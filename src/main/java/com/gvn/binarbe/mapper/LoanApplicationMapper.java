@@ -37,6 +37,8 @@ public class LoanApplicationMapper {
         .requestedAmount(loan.getRequestedAmount())
         .requestedTenor(loan.getRequestedTenor())
         .requestedRate(loan.getRequestedRate())
+        .latitude(loan.getLatitude())
+        .longitude(loan.getLongitude())
         .status(loan.getStatus())
         .createdAt(loan.getCreatedAt())
         .updatedAt(loan.getUpdatedAt())

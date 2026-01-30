@@ -114,6 +114,8 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .requestedAmount(request.getAmount())
             .requestedTenor(request.getTenor())
             .requestedRate(request.getInterestRate())
+            .latitude(request.getLatitude())
+            .longitude(request.getLongitude())
             .customerNameSnapshot(customer.getName())
             .customerEmailSnapshot(customer.getEmail())
             .customerNikSnapshot(profile.getNik())

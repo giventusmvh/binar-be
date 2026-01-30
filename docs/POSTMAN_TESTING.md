@@ -655,7 +655,9 @@ if (pm.response.code === 201) {
   "branchId": 1,
   "amount": 3000000,
   "tenor": 6,
-  "interestRate": 12.0
+  "interestRate": 12.0,
+  "latitude": "-6.2088",
+  "longitude": "106.8456"
 }
 ```
 
@@ -693,6 +695,8 @@ if (pm.response.code === 201) {
     "requestedAmount": 3000000,
     "requestedTenor": 6,
     "requestedRate": 12.0,
+    "latitude": "-6.2088",
+    "longitude": "106.8456",
     "status": "SUBMITTED",
     "createdAt": "2025-12-23T22:00:00"
   },

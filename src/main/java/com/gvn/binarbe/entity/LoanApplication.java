@@ -46,6 +46,12 @@ public class LoanApplication {
   @Column(name = "requested_rate", nullable = false, precision = 5, scale = 2)
   private java.math.BigDecimal requestedRate; // percentage per annum
 
+  @Column(name = "latitude")
+  private String latitude;
+
+  @Column(name = "longitude")
+  private String longitude;
+
   // ==========================================
   // CUSTOMER SNAPSHOT (preserved at submission)
   // ==========================================

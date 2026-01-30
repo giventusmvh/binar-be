@@ -24,4 +24,8 @@ public class LoanApplicationRequest {
   private Integer tenor;
 
   @NotNull(message = "Interest rate is required") @Positive(message = "Interest rate must be positive") private BigDecimal interestRate;
+
+  @NotNull(message = "Latitude is required") private String latitude;
+
+  @NotNull(message = "Longitude is required") private String longitude;
 }

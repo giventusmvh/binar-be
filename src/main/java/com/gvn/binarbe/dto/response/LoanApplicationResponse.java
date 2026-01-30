@@ -42,6 +42,8 @@ public class LoanApplicationResponse {
   private BigDecimal requestedAmount;
   private Integer requestedTenor;
   private BigDecimal requestedRate;
+  private String latitude;
+  private String longitude;
   private LoanStatus status;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
