@@ -43,3 +43,5 @@ build/
 src/main/resources/firebase-service-account.json
 uploads/
 .DS_Store
+
+docs/comprehensive_guide

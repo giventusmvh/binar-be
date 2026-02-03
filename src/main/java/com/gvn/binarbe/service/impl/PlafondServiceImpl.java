@@ -5,10 +5,12 @@ import com.gvn.binarbe.dto.response.UserPlafondResponse;
 import com.gvn.binarbe.entity.Product;
 import com.gvn.binarbe.entity.User;
 import com.gvn.binarbe.entity.UserPlafond;
+import com.gvn.binarbe.entity.UserProfile;
 import com.gvn.binarbe.exception.BusinessException;
 import com.gvn.binarbe.mapper.PlafondMapper;
 import com.gvn.binarbe.repository.ProductRepository;
 import com.gvn.binarbe.repository.UserPlafondRepository;
+import com.gvn.binarbe.repository.UserProfileRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.service.PlafondService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PlafondServiceImpl implements PlafondService {
 
   private final UserRepository userRepository;
+  private final UserProfileRepository userProfileRepository;
   private final ProductRepository productRepository;
   private final UserPlafondRepository userPlafondRepository;
   private final PlafondMapper plafondMapper;
@@ -36,6 +39,20 @@ public class PlafondServiceImpl implements PlafondService {
         userRepository
             .findByEmail(email)
             .orElseThrow(() -> BusinessException.notFound("User not found"));
+
+    UserProfile profile =
+        userProfileRepository
+            .findByUserId(user.getId())
+            .orElseThrow(
+                () ->
+                    BusinessException.badRequest(
+                        "Profile not found. Please complete your profile first."));
+
+    if (!profile.isComplete()) {
+      throw BusinessException.badRequest(
+          "Please complete your profile before selecting a plafond. "
+              + "Required fields: NIK, birthdate, phone, and address.");
+    }
 
     if (userPlafondRepository.existsByUserIdAndIsActiveTrue(user.getId())) {
       throw BusinessException.badRequest(
