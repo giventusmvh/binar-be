@@ -30,4 +30,20 @@ public interface PlafondService {
    * @return true if user has active plafond
    */
   boolean hasActivePlafond(String email);
+
+  /**
+   * Get plafond by user ID (Admin only).
+   *
+   * @param userId User ID
+   * @return UserPlafondResponse
+   */
+  UserPlafondResponse getUserPlafond(Long userId);
+
+  /**
+   * Deactivate user's plafond (Admin only).
+   *
+   * @param userId User ID
+   * @return UserPlafondResponse
+   */
+  UserPlafondResponse deactivateUserPlafond(Long userId);
 }

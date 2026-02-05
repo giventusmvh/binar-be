@@ -7,7 +7,9 @@ import com.gvn.binarbe.dto.request.UpdateUserRequest;
 import com.gvn.binarbe.dto.request.UpdateUserStatusRequest;
 import com.gvn.binarbe.dto.response.PermissionResponse;
 import com.gvn.binarbe.dto.response.RoleResponse;
+import com.gvn.binarbe.dto.response.UserPlafondResponse;
 import com.gvn.binarbe.dto.response.UserResponse;
+import com.gvn.binarbe.service.PlafondService;
 import com.gvn.binarbe.service.SuperAdminService;
 import com.gvn.binarbe.util.ApiResponse;
 import com.gvn.binarbe.util.ResponseUtil;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class SuperAdminController {
 
   private final SuperAdminService superAdminService;
+  private final PlafondService plafondService;
 
   /**
    * Create a new internal user with role and branch assignment. POST /api/admin/users Requires
@@ -103,5 +106,27 @@ public class SuperAdminController {
       @PathVariable Long id, @Valid @RequestBody UpdateUserStatusRequest request) {
     UserResponse response = superAdminService.updateUserStatus(id, request);
     return ResponseUtil.ok("User status updated successfully", response);
+  }
+
+  /**
+   * Get user's active plafond by user ID. GET /api/admin/users/{userId}/plafond Requires SUPERADMIN
+   * role.
+   */
+  @GetMapping("/users/{userId}/plafond")
+  public ResponseEntity<ApiResponse<UserPlafondResponse>> getUserPlafond(
+      @PathVariable Long userId) {
+    UserPlafondResponse response = plafondService.getUserPlafond(userId);
+    return ResponseUtil.ok(response);
+  }
+
+  /**
+   * Deactivate user's Active Plafond. PATCH /api/admin/users/{userId}/plafond/deactivate Requires
+   * SUPERADMIN role.
+   */
+  @PatchMapping("/users/{userId}/plafond/deactivate")
+  public ResponseEntity<ApiResponse<UserPlafondResponse>> deactivateUserPlafond(
+      @PathVariable Long userId) {
+    UserPlafondResponse response = plafondService.deactivateUserPlafond(userId);
+    return ResponseUtil.ok("User active plafond deactivated successfully", response);
   }
 }

@@ -31,6 +31,11 @@ public class LoanApplicationResponse {
   private String customerKtpPath;
   private String customerKkPath;
   private String customerNpwpPath;
+  private String customerSelfiePath;
+  private String customerSalarySlipPath;
+
+  private String customerJob;
+  private String customerCompanyName;
 
   // Bank account snapshot (preserved from submission time)
   private String customerBankName;

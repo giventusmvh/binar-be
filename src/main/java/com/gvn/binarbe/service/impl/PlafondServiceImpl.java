@@ -2,17 +2,22 @@ package com.gvn.binarbe.service.impl;
 
 import com.gvn.binarbe.dto.request.SelectPlafondRequest;
 import com.gvn.binarbe.dto.response.UserPlafondResponse;
+import com.gvn.binarbe.entity.LoanApplication;
 import com.gvn.binarbe.entity.Product;
 import com.gvn.binarbe.entity.User;
 import com.gvn.binarbe.entity.UserPlafond;
 import com.gvn.binarbe.entity.UserProfile;
+import com.gvn.binarbe.enums.LoanStatus;
 import com.gvn.binarbe.exception.BusinessException;
 import com.gvn.binarbe.mapper.PlafondMapper;
+import com.gvn.binarbe.repository.LoanApplicationRepository;
 import com.gvn.binarbe.repository.ProductRepository;
 import com.gvn.binarbe.repository.UserPlafondRepository;
 import com.gvn.binarbe.repository.UserProfileRepository;
 import com.gvn.binarbe.repository.UserRepository;
 import com.gvn.binarbe.service.PlafondService;
+import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +33,7 @@ public class PlafondServiceImpl implements PlafondService {
   private final UserProfileRepository userProfileRepository;
   private final ProductRepository productRepository;
   private final UserPlafondRepository userPlafondRepository;
+  private final LoanApplicationRepository loanApplicationRepository;
   private final PlafondMapper plafondMapper;
 
   @Override
@@ -107,5 +113,57 @@ public class PlafondServiceImpl implements PlafondService {
             .orElseThrow(() -> BusinessException.notFound("User not found"));
 
     return userPlafondRepository.existsByUserIdAndIsActiveTrue(user.getId());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public UserPlafondResponse getUserPlafond(Long userId) {
+    UserPlafond userPlafond =
+        userPlafondRepository
+            .findByUserIdWithProduct(userId)
+            .orElseThrow(() -> BusinessException.notFound("User does not have any plafond"));
+
+    return plafondMapper.toResponse(userPlafond);
+  }
+
+  @Override
+  @Transactional
+  public UserPlafondResponse deactivateUserPlafond(Long userId) {
+    UserPlafond userPlafond =
+        userPlafondRepository
+            .findByUserIdWithProduct(userId)
+            .orElseThrow(
+                () ->
+                    BusinessException.notFound(
+                        "User does not have any active plafond to deactivate"));
+
+    if (!userPlafond.getIsActive()) {
+      throw BusinessException.badRequest("User plafond is already inactive");
+    }
+
+    userPlafond.setIsActive(false);
+    userPlafond = userPlafondRepository.save(userPlafond);
+
+    // Auto-reject pending loans
+    List<LoanStatus> pendingStatuses =
+        Arrays.asList(
+            LoanStatus.SUBMITTED,
+            LoanStatus.MARKETING_APPROVED,
+            LoanStatus.BRANCH_MANAGER_APPROVED);
+
+    List<LoanApplication> pendingLoans =
+        loanApplicationRepository.findByCustomerId(userId).stream()
+            .filter(loan -> pendingStatuses.contains(loan.getStatus()))
+            .toList();
+
+    for (LoanApplication loan : pendingLoans) {
+      loan.setStatus(LoanStatus.REJECTED);
+      loanApplicationRepository.save(loan);
+      log.info("Auto-rejected loan application ID {} due to plafond deactivation", loan.getId());
+    }
+
+    log.info("Plafond deactivated for user ID: {}", userId);
+
+    return plafondMapper.toResponse(userPlafond);
   }
 }

@@ -70,7 +70,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     if (!profile.isComplete()) {
       throw BusinessException.badRequest(
           "Please complete your profile before submitting a loan application. "
-              + "Required fields: NIK, birthdate, phone, and address.");
+              + "All personal, employment, and document fields are required.");
     }
 
     UserPlafond userPlafond =
@@ -125,6 +125,10 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             .customerKtpPathSnapshot(profile.getKtpPath())
             .customerKkPathSnapshot(profile.getKkPath())
             .customerNpwpPathSnapshot(profile.getNpwpPath())
+            .customerSelfiePathSnapshot(profile.getSelfiePath())
+            .customerSalarySlipPathSnapshot(profile.getSalarySlipPath())
+            .customerJobSnapshot(profile.getJob())
+            .customerCompanyNameSnapshot(profile.getCompanyName())
             .customerBankNameSnapshot(profile.getBankName())
             .customerAccountNumberSnapshot(profile.getAccountNumber())
             .customerAccountHolderNameSnapshot(profile.getAccountHolderName())

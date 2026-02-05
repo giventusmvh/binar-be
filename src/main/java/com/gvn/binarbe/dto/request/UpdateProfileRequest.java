@@ -40,4 +40,10 @@ public class UpdateProfileRequest {
 
   @NotBlank(message = "Account holder name is required")
   private String accountHolderName;
+
+  @NotBlank(message = "Job is required")
+  private String job;
+
+  @NotBlank(message = "Company name is required")
+  private String companyName;
 }

@@ -58,7 +58,9 @@ public class CustomerServiceImpl implements CustomerService {
       UpdateProfileRequest request,
       MultipartFile ktp,
       MultipartFile kk,
-      MultipartFile npwp) {
+      MultipartFile npwp,
+      MultipartFile selfie,
+      MultipartFile salarySlip) {
     log.info("Updating profile for user: {}", email);
 
     User user =
@@ -78,6 +80,8 @@ public class CustomerServiceImpl implements CustomerService {
     profile.setBankName(request.getBankName());
     profile.setAccountNumber(request.getAccountNumber());
     profile.setAccountHolderName(request.getAccountHolderName());
+    profile.setJob(request.getJob());
+    profile.setCompanyName(request.getCompanyName());
 
     if (ktp != null && !ktp.isEmpty()) {
       String ktpFileName = fileStorageService.storeFile(ktp);
@@ -92,6 +96,16 @@ public class CustomerServiceImpl implements CustomerService {
     if (npwp != null && !npwp.isEmpty()) {
       String npwpFileName = fileStorageService.storeFile(npwp);
       profile.setNpwpPath(npwpFileName);
+    }
+
+    if (selfie != null && !selfie.isEmpty()) {
+      String selfieFileName = fileStorageService.storeFile(selfie);
+      profile.setSelfiePath(selfieFileName);
+    }
+
+    if (salarySlip != null && !salarySlip.isEmpty()) {
+      String salarySlipFileName = fileStorageService.storeFile(salarySlip);
+      profile.setSalarySlipPath(salarySlipFileName);
     }
 
     profile = userProfileRepository.save(profile);

@@ -48,8 +48,7 @@ public class FileController {
 
     // 2. If not staff, check ownership via UserProfile
     boolean isOwner = false;
-    Optional<UserProfile> profile =
-        userProfileRepository.findByKtpPathOrKkPathOrNpwpPath(filename, filename, filename);
+    Optional<UserProfile> profile = userProfileRepository.findByAnyDocumentPath(filename);
 
     if (profile.isPresent()) {
       if (profile.get().getUser().getEmail().equals(authentication.getName())) {

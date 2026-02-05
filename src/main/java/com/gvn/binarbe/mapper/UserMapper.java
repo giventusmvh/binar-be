@@ -41,6 +41,11 @@ public class UserMapper {
         .ktpUrl(profile.getKtpPath() != null ? "/uploads/" + profile.getKtpPath() : null)
         .kkUrl(profile.getKkPath() != null ? "/uploads/" + profile.getKkPath() : null)
         .npwpUrl(profile.getNpwpPath() != null ? "/uploads/" + profile.getNpwpPath() : null)
+        .selfieUrl(profile.getSelfiePath() != null ? "/uploads/" + profile.getSelfiePath() : null)
+        .salarySlipUrl(
+            profile.getSalarySlipPath() != null ? "/uploads/" + profile.getSalarySlipPath() : null)
+        .job(profile.getJob())
+        .companyName(profile.getCompanyName())
         .bankName(profile.getBankName())
         .accountNumber(profile.getAccountNumber())
         .accountHolderName(profile.getAccountHolderName())

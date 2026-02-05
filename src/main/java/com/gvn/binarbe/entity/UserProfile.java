@@ -55,9 +55,21 @@ public class UserProfile {
   @Column(name = "account_holder_name", length = 100)
   private String accountHolderName;
 
+  @Column(name = "selfie_path")
+  private String selfiePath;
+
+  @Column(name = "salary_slip_path")
+  private String salarySlipPath;
+
+  @Column(length = 100)
+  private String job;
+
+  @Column(name = "company_name", length = 100)
+  private String companyName;
+
   /**
    * Check if profile is complete for loan application submission. All fields (birthdate, phone,
-   * address, nik, ktp, kk, npwp, bank account) must be filled.
+   * address, nik, ktp, kk, npwp, bank account, selfie, salary slip, job, company) must be filled.
    */
   public boolean isComplete() {
     return birthdate != null
@@ -73,6 +85,14 @@ public class UserProfile {
         && !kkPath.isBlank()
         && npwpPath != null
         && !npwpPath.isBlank()
+        && selfiePath != null
+        && !selfiePath.isBlank()
+        && salarySlipPath != null
+        && !salarySlipPath.isBlank()
+        && job != null
+        && !job.isBlank()
+        && companyName != null
+        && !companyName.isBlank()
         && bankName != null
         && !bankName.isBlank()
         && accountNumber != null

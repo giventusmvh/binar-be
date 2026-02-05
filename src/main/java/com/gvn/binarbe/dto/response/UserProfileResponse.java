@@ -22,6 +22,11 @@ public class UserProfileResponse {
   private String ktpUrl;
   private String kkUrl;
   private String npwpUrl;
+  private String selfieUrl;
+  private String salarySlipUrl;
+
+  private String job;
+  private String companyName;
 
   // Bank account information
   private String bankName;

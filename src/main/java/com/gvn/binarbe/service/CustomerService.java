@@ -30,7 +30,9 @@ public interface CustomerService {
       UpdateProfileRequest request,
       MultipartFile ktp,
       MultipartFile kk,
-      MultipartFile npwp);
+      MultipartFile npwp,
+      MultipartFile selfie,
+      MultipartFile salarySlip);
 
   /**
    * Check if customer profile is complete.

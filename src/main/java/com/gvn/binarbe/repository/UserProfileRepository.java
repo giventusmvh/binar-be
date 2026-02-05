@@ -12,6 +12,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
 
   boolean existsByUserId(Long userId);
 
-  Optional<UserProfile> findByKtpPathOrKkPathOrNpwpPath(
-      String ktpPath, String kkPath, String npwpPath);
+  @org.springframework.data.jpa.repository.Query(
+      "SELECT p FROM UserProfile p WHERE p.ktpPath = :filename OR p.kkPath = :filename OR p.npwpPath = :filename OR p.selfiePath = :filename OR p.salarySlipPath = :filename")
+  Optional<UserProfile> findByAnyDocumentPath(
+      @org.springframework.data.repository.query.Param("filename") String filename);
 }

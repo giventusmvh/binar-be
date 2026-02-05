@@ -52,9 +52,14 @@ public class CustomerController {
       @RequestPart(value = "kk", required = false)
           org.springframework.web.multipart.MultipartFile kk,
       @RequestPart(value = "npwp", required = false)
-          org.springframework.web.multipart.MultipartFile npwp) {
+          org.springframework.web.multipart.MultipartFile npwp,
+      @RequestPart(value = "selfie", required = false)
+          org.springframework.web.multipart.MultipartFile selfie,
+      @RequestPart(value = "salarySlip", required = false)
+          org.springframework.web.multipart.MultipartFile salarySlip) {
     UserProfileResponse response =
-        customerService.updateProfile(userDetails.getUsername(), request, ktp, kk, npwp);
+        customerService.updateProfile(
+            userDetails.getUsername(), request, ktp, kk, npwp, selfie, salarySlip);
     return ResponseUtil.ok("Profile updated successfully", response);
   }
 
