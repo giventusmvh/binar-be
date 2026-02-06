@@ -53,3 +53,10 @@ jobs:
             echo "Attempt $i failed, retrying in 30 seconds..."
             sleep 30
           done
+
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports
