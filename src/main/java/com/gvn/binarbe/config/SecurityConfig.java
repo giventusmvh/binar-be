@@ -44,6 +44,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/error")
                     .permitAll()
+                    .requestMatchers("/actuator/**")
+                    .permitAll()
 
                     // Admin endpoints - superadmin only (kept for safety)
                     .requestMatchers("/api/admin/**")
