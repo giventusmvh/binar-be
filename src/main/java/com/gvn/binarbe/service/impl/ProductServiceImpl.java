@@ -20,6 +20,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional
+  @org.springframework.cache.annotation.CacheEvict(value = "products", allEntries = true)
   public ProductResponse create(ProductRequest request) {
     if (productRepository.existsByName(request.getName())) {
       throw BusinessException.badRequest(
@@ -40,6 +41,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional(readOnly = true)
+  @org.springframework.cache.annotation.Cacheable(value = "products")
   public List<ProductResponse> getAll() {
     return productRepository.findAll().stream()
         .map(this::mapToResponse)
@@ -48,6 +50,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional(readOnly = true)
+  @org.springframework.cache.annotation.Cacheable(value = "products", key = "#id")
   public ProductResponse getById(Long id) {
     Product product =
         productRepository
@@ -58,6 +61,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional
+  @org.springframework.cache.annotation.CacheEvict(value = "products", allEntries = true)
   public ProductResponse update(Long id, ProductRequest request) {
     Product product =
         productRepository
@@ -82,6 +86,7 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional
+  @org.springframework.cache.annotation.CacheEvict(value = "products", allEntries = true)
   public void delete(Long id) {
     if (!productRepository.existsById(id)) {
       throw BusinessException.notFound("Product not found with id: " + id);

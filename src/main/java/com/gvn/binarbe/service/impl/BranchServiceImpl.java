@@ -25,6 +25,7 @@ public class BranchServiceImpl implements BranchService {
 
   @Override
   @Transactional(readOnly = true)
+  @org.springframework.cache.annotation.Cacheable(value = "branches")
   public List<BranchResponse> getAllBranches() {
     return branchRepository.findAll().stream()
         .map(branchMapper::toResponse)
@@ -33,6 +34,7 @@ public class BranchServiceImpl implements BranchService {
 
   @Override
   @Transactional(readOnly = true)
+  @org.springframework.cache.annotation.Cacheable(value = "branches", key = "#id")
   public BranchResponse getBranchById(Long id) {
     Branch branch =
         branchRepository
@@ -43,6 +45,7 @@ public class BranchServiceImpl implements BranchService {
 
   @Override
   @Transactional
+  @org.springframework.cache.annotation.CacheEvict(value = "branches", allEntries = true)
   public BranchResponse createBranch(CreateBranchRequest request) {
     log.info("Creating new branch with code: {}", request.getCode());
 
@@ -61,6 +64,7 @@ public class BranchServiceImpl implements BranchService {
 
   @Override
   @Transactional
+  @org.springframework.cache.annotation.CacheEvict(value = "branches", allEntries = true)
   public BranchResponse updateBranch(Long id, UpdateBranchRequest request) {
     log.info("Updating branch with ID: {}", id);
 
@@ -90,6 +94,7 @@ public class BranchServiceImpl implements BranchService {
 
   @Override
   @Transactional
+  @org.springframework.cache.annotation.CacheEvict(value = "branches", allEntries = true)
   public void deleteBranch(Long id) {
     log.info("Deleting branch with ID: {}", id);
 
