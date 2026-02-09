@@ -1,5 +1,4 @@
 services:
-  # Spring Boot Application
   app:
     image: giventusmvh/binar-be:latest
     container_name: ${APP_CONTAINER_NAME:-binar-be-app}
@@ -19,8 +18,10 @@ services:
       - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
       - APP_PASSWORD_RESET_BASE_URL=${PASSWORD_RESET_BASE_URL:-http://localhost:4200/reset-password}
       - FILE_UPLOAD_DIR=/app/uploads
+      - FIREBASE_CREDENTIALS_PATH=/app/firebase-service-account.json
     volumes:
-      - uploads-data:/app/uploads
+      - ./uploads:/app/uploads
+      - ./firebase-service-account.json:/app/firebase-service-account.json:ro
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -30,7 +31,6 @@ services:
       - binar-network
     restart: unless-stopped
 
-  # Microsoft SQL Server
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: ${DB_CONTAINER_NAME:-binar-be-sqlserver}
@@ -52,7 +52,6 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: ${REDIS_CONTAINER_NAME:-binar-be-redis}
@@ -73,6 +72,4 @@ volumes:
   sqlserver-data:
     driver: local
   redis-data:
-    driver: local
-  uploads-data:
     driver: local
