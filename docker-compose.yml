@@ -20,6 +20,9 @@ services:
       - SPRING_MAIL_USERNAME=${MAIL_USERNAME}
       - SPRING_MAIL_PASSWORD=${MAIL_PASSWORD}
       - APP_PASSWORD_RESET_BASE_URL=${PASSWORD_RESET_BASE_URL:-http://localhost:4200/reset-password}
+      - FILE_UPLOAD_DIR=/app/uploads
+    volumes:
+      - uploads-data:/app/uploads
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -72,4 +75,6 @@ volumes:
   sqlserver-data:
     driver: local
   redis-data:
+    driver: local
+  uploads-data:
     driver: local
