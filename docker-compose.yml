@@ -1,9 +1,7 @@
 services:
   # Spring Boot Application
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: giventusmvh/binar-be:latest
     container_name: ${APP_CONTAINER_NAME:-binar-be-app}
     ports:
       - "${APP_PORT:-8080}:8080"
