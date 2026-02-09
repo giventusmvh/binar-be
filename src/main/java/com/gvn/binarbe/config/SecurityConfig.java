@@ -33,32 +33,31 @@ public class SecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .authorizeHttpRequests(
-            auth ->
-                auth
-                    // Public endpoints
-                    .requestMatchers("/api/auth/**")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/products/**")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/branches/**")
-                    .permitAll()
-                    .requestMatchers("/error")
-                    .permitAll()
-                    .requestMatchers("/actuator/**")
-                    .permitAll()
+            auth -> auth
+                // Public endpoints
+                .requestMatchers("/api/auth/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/products/**")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/branches/**")
+                .permitAll()
+                .requestMatchers("/error")
+                .permitAll()
+                .requestMatchers("/actuator/**")
+                .permitAll()
 
-                    // Admin endpoints - superadmin only (kept for safety)
-                    .requestMatchers("/api/admin/**")
-                    .hasRole("SUPERADMIN")
-                    .requestMatchers("/api/admin/branches/**")
-                    .hasRole("SUPERADMIN")
-                    .requestMatchers("/api/users/**")
-                    .hasAnyRole("SUPERADMIN", "MARKETING", "BRANCH_MANAGER", "BACKOFFICE")
+                // Admin endpoints - superadmin only (kept for safety)
+                .requestMatchers("/api/admin/**")
+                .hasRole("SUPERADMIN")
+                .requestMatchers("/api/admin/branches/**")
+                .hasRole("SUPERADMIN")
+                .requestMatchers("/api/users/**")
+                .hasAnyRole("SUPERADMIN", "MARKETING", "BRANCH_MANAGER", "BACKOFFICE")
 
-                    // All other requests require authentication
-                    // Permission-based access control is handled by @PreAuthorize
-                    .anyRequest()
-                    .authenticated())
+                // All other requests require authentication
+                // Permission-based access control is handled by @PreAuthorize
+                .anyRequest()
+                .authenticated())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -68,23 +67,29 @@ public class SecurityConfig {
 
   @Bean
   public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-    org.springframework.web.cors.CorsConfiguration configuration =
-        new org.springframework.web.cors.CorsConfiguration();
-    configuration.setAllowedOriginPatterns(java.util.List.of("*")); // Allow all origins for dev
+    org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+    // Production: Only allow specific origins
+    // Note: Mobile apps (Android/iOS) don't need CORS - they bypass browser
+    // restrictions
+    configuration.setAllowedOriginPatterns(
+        java.util.List.of(
+            "https://ehefin-fe.vercel.app", // Production frontend
+            "https://*.vercel.app", // Vercel preview deployments
+            "http://localhost:*", // Local development
+            "http://127.0.0.1:*" // Local development alternative
+        ));
     configuration.setAllowedMethods(
         java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
     configuration.setAllowedHeaders(java.util.List.of("*"));
     configuration.setAllowCredentials(true);
-    org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
-        new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+    org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;
   }
 
   @Bean
   public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-    AuthenticationManagerBuilder authBuilder =
-        http.getSharedObject(AuthenticationManagerBuilder.class);
+    AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
     authBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     return authBuilder.build();
   }
